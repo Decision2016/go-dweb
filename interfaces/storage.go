@@ -6,7 +6,7 @@
 
 package interfaces
 
-type FSInterface interface {
+type IFileStorage interface {
 	Ping() (error, bool)
 	Upload(name string, data []byte) error
 	Download(identity string) ([]byte, error)

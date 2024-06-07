@@ -6,7 +6,7 @@
 
 package interfaces
 
-type ChainInterface interface {
+type IChain interface {
 	// （读取）FS 静态资源存储相关，获取相关的属性信息
 	Identity() (string, error)  // 获取链上存放的索引信息，格式为 /type/version/cid
 	Bootstrap() (string, error) // 获取 P2P 网络连接信息，如果为空则非 P2P 应用
