@@ -6,4 +6,6 @@
 
 package utils
 
-func DirIncrementCreate
+func DirIncrementCreate() {
+
+}
