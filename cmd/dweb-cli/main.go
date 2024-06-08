@@ -5,3 +5,21 @@
 **/
 
 package main
+
+import "github.com/spf13/cobra"
+
+var rootCmd = &cobra.Command{
+	Use:   "dweb",
+	Short: "DWeb is an extensible decentralized web service framework",
+	Long: "DWeb is an extensible decentralized web service framework " +
+		"that can be used for decentralized deployment of web applications " +
+		"such as React, Vue, etc",
+}
+
+func main() {
+	rootCmd.Execute()
+}
+
+func init() {
+	rootCmd.AddCommand(appCmd)
+}
