@@ -14,6 +14,7 @@ var rootCmd = &cobra.Command{
 	Long: "DWeb is an extensible decentralized web service framework " +
 		"that can be used for decentralized deployment of web applications " +
 		"such as React, Vue, etc",
+	TraverseChildren: true,
 }
 
 func main() {

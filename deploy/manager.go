@@ -53,8 +53,8 @@ func appInitial(path string) error {
 		return fmt.Errorf("add file .gitignore failed")
 	}
 
-	commiMsg := "initial"
-	commit, err := tree.Commit(commiMsg, &git.CommitOptions{
+	commitMsg := "initial"
+	commit, err := tree.Commit(commitMsg, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "dweb-app",
 			Email: "apps@dweb.org",
