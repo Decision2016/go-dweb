@@ -7,14 +7,13 @@
 package utils
 
 import (
-	"github.com/gookit/config"
-	"github.com/gookit/config/yaml"
+	"github.com/gookit/config/v2"
+	"github.com/gookit/config/v2/yaml"
 	"github.com/sirupsen/logrus"
 )
 
 func LoadGlobalConfig(filepath string) {
 	config.WithOptions(config.ParseEnv)
-
 	config.AddDriver(yaml.Driver)
 
 	err := config.LoadFiles(filepath)

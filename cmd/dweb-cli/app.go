@@ -18,8 +18,9 @@ var appCmd = &cobra.Command{
 }
 
 var appInitCmd = &cobra.Command{
-	Use:  "init",
-	Long: "Initialize decentralized application directory",
+	Use:   "init",
+	Short: "Initialize decentralized application directory",
+	Long:  "Initialize decentralized application directory",
 	Run: func(cmd *cobra.Command, args []string) {
 		deploy.AppInitial()
 	},
