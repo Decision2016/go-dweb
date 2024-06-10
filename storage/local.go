@@ -7,11 +7,11 @@ import (
 	"github.com/ipfs/kubo/core"
 	"github.com/ipfs/kubo/core/coreapi"
 	iface "github.com/ipfs/kubo/core/coreiface"
+	"github.com/ipfs/kubo/plugin/loader"
 	"github.com/ipfs/kubo/repo/fsrepo"
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/utils"
 	"os"
-	"path/filepath"
 )
 
 // 以插件的形式出现，对象的实例化基于配置文件
@@ -46,13 +46,19 @@ func (i *LocalIPFS) start(ctx context.Context) {
 	if !exists {
 		logrus.Info("Repo directory is not exist, creating new ...")
 
-		parent := filepath.Dir(i.repoPath)
-		dirName := filepath.Base(i.repoPath)
-
-		formatted := filepath.Join(parent, dirName)
-		err := os.Mkdir(formatted, 0755)
+		plugins, err := loader.NewPluginLoader(i.repoPath)
 		if err != nil {
-			logrus.WithError(err).Fatalln("Create work directory failed")
+			logrus.WithError(err).Fatalln("load repo path failed")
+		}
+
+		err = plugins.Initialize()
+		if err != nil {
+			logrus.WithError(err).Fatalln("plugin initial failed")
+		}
+
+		err = plugins.Inject()
+		if err != nil {
+			logrus.WithError(err).Fatalln("plugin inject failed")
 		}
 
 		c, err := cfg.Init(os.Stdout, 2048)
