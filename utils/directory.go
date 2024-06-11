@@ -16,7 +16,7 @@ func CheckDirExistAndEmpty(path string) (bool, error) {
 		return false, fmt.Errorf("parent diectory not exists")
 	}
 
-	// 判断目录是否为空
+	// 判断目录是否存在
 	_, err = os.Stat(path)
 	// 如果目录不存在直接返回 nil，创建的工作交由上层函数
 	if os.IsNotExist(err) {
@@ -26,17 +26,17 @@ func CheckDirExistAndEmpty(path string) (bool, error) {
 	// 否则判断目录是否为空
 	dir, err := os.Open(path)
 	if err != nil {
-		return false, fmt.Errorf("can not open directory")
+		return true, fmt.Errorf("can not open directory")
 	}
 	defer dir.Close()
 
 	entries, err := dir.ReadDir(0)
 	if err != nil {
-		return false, fmt.Errorf("can not read directory")
+		return true, fmt.Errorf("can not read directory")
 	}
 
 	if len(entries) != 0 {
-		return false, fmt.Errorf("directory is not empty")
+		return true, fmt.Errorf("directory is not empty")
 	}
 
 	return true, nil

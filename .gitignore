@@ -22,3 +22,4 @@ go.work
 .DS_Store
 .idea
 #/cmd/playground
+/cmd/playground/ipfs/.ipfs/
