@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/sirupsen/logrus"
-	"github.io/decision2016/go-dweb/storage"
+	"github.io/decision2016/go-dweb/plugins"
 	"github.io/decision2016/go-dweb/utils"
 	"os"
 	"os/signal"
@@ -14,7 +14,7 @@ import (
 func main() {
 	utils.LoadGlobalConfig("conf.yml")
 
-	ipfs := storage.LocalIPFS{}
+	ipfs := plugins.LocalIPFS{}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	sigs := make(chan os.Signal, 1)

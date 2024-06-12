@@ -1,4 +1,4 @@
-package storage
+package plugins
 
 import (
 	"context"
@@ -33,8 +33,12 @@ func (i *LocalIPFS) Initial(ctx context.Context) error {
 	return nil
 }
 
-func (i *LocalIPFS) Ping(ctx context.Context) bool {
-	return true
+func (i *LocalIPFS) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (i *LocalIPFS) Exists(ctx context.Context, identity string) (bool, error) {
+	return true, nil
 }
 
 // Upload 将文件存放到 IPFS 下
@@ -80,6 +84,10 @@ func (i *LocalIPFS) Download(ctx context.Context, identity string, dst string) e
 	}
 	logrus.Debugf("download file %s to %s success", identity, dst)
 
+	return nil
+}
+
+func (i *LocalIPFS) Delete(ctx context.Context, identity string) error {
 	return nil
 }
 
