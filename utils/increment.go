@@ -44,7 +44,7 @@ func CreateDirIncrement(start string, end string) ([]string, error) {
 		}
 
 		if len(commits) < 2 {
-			return nil, fmt.Errorf("commit count too less < 2")
+			return nil, fmt.Errorf("commit times too less < 2")
 		}
 		fromCommit = commits[1]
 		toCommit = commits[0]

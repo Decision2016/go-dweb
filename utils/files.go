@@ -38,3 +38,13 @@ func GetUnixFsNode(path string) (files.Node, error) {
 
 	return f, nil
 }
+
+//func GetFileCidV0(path string) (*cid.Cid, error) {
+//	fileBytes, err := os.Open(path)
+//	if err != nil {
+//		logrus.Debugf("read file %s failed", path)
+//		return nil, err
+//	}
+//
+//	chunks := chunker.
+//}

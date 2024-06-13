@@ -37,7 +37,8 @@ func (i *LocalIPFS) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (i *LocalIPFS) Exists(ctx context.Context, identity string) (bool, error) {
+func (i *LocalIPFS) Exists(ctx context.Context, source string) (bool, error) {
+
 	return true, nil
 }
 
@@ -136,11 +137,11 @@ func (i *LocalIPFS) start(ctx context.Context) {
 		Online: true,
 	})
 	if err != nil {
-		logrus.WithError(err).Error("Run ipfs node failed.")
+		logrus.WithError(err).Error("run ipfs node failed.")
 		return
 	}
 	addrs := node.PeerHost.Addrs()
-	logrus.Infof("Local node address: %s", addrs[0])
+	logrus.Infof("local node address: %s", addrs[0])
 
 	api, err := coreapi.NewCoreAPI(node)
 	if err != nil {
