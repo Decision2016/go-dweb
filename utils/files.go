@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"fmt"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/ipfs/boxo/files"
 	"os"
 )
@@ -48,3 +51,32 @@ func GetUnixFsNode(path string) (files.Node, error) {
 //
 //	chunks := chunker.
 //}
+
+func ListAllCommittedFiles(dir string) error {
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return err
+	}
+
+	ref, err := repo.Head()
+	if err != nil {
+		return err
+	}
+
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		return err
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		return err
+	}
+
+	tree.Files().ForEach(func(f *object.File) error {
+		fmt.Println(f.Name)
+		return nil
+	})
+
+	return nil
+}

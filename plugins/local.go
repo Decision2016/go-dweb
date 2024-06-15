@@ -93,7 +93,7 @@ func (i *LocalIPFS) Delete(ctx context.Context, identity string) error {
 }
 
 func (i *LocalIPFS) start(ctx context.Context) {
-	logrus.Infof("Using %s as location ipfs repo.", i.repoPath)
+	logrus.Infof("using %s as location ipfs repo.", i.repoPath)
 
 	exists, err := utils.CheckDirExistAndEmpty(i.repoPath)
 

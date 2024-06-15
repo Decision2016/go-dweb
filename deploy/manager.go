@@ -64,7 +64,7 @@ func appInitial(path string) error {
 		return fmt.Errorf("initial commit failed")
 	}
 
-	logrus.Infoln("App initial successful!")
+	logrus.Infoln("app initial successful!")
 	logrus.Infof("Initial commit hash: %s", commit)
 	return nil
 }
