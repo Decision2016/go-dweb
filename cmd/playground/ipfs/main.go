@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&utils.CustomFormatter{})
 	utils.LoadGlobalConfig("conf.yml")
 
 	ipfs := plugins.LocalIPFS{}
@@ -25,14 +26,16 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	time.Sleep(5 * time.Second)
-	err = ipfs.Upload(ctx, "test", "./test.txt")
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	//time.Sleep(5 * time.Second)
+	//err = ipfs.Upload(ctx, "test", "./test.txt")
+	//if err != nil {
+	//	logrus.Fatal(err)
+	//}
 
 	time.Sleep(5 * time.Second)
-	err = ipfs.Download(ctx, "/ipfs/QmTUGidoGYXqke7ioV3tFd3es5FrxUNTU2UTra42qWXFig", "./download.txt")
+	err = ipfs.Download(ctx,
+		"/ipfs/QmRrscxG2pywPmSTBejLPJ16fnQSVPagNQpdK2xaTf92dY",
+		"./download.png")
 	if err != nil {
 		logrus.Fatal(err)
 	}
