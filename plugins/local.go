@@ -121,6 +121,8 @@ func (i *LocalIPFS) Download(ctx context.Context, identity string, dst string) e
 }
 
 func (i *LocalIPFS) Delete(ctx context.Context, identity string) error {
+	//api := *i.api
+
 	return nil
 }
 
