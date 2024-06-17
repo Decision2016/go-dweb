@@ -11,9 +11,12 @@ import (
 	iface "github.com/ipfs/kubo/core/coreiface"
 	"github.com/ipfs/kubo/plugin/loader"
 	"github.com/ipfs/kubo/repo/fsrepo"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/utils"
 	"os"
+	"sync"
 )
 
 // 以插件的形式出现，对象的实例化基于配置文件
@@ -26,7 +29,36 @@ type LocalIPFS struct {
 
 var Instance LocalIPFS
 
+var peers = []string{
+	// 8api.sh
+	"/ip4/78.46.108.24/tcp/4001/p2p/12D3KooWGASC2jm3pmohEJXUhuStkxDitPgzvs4qMuFPaiD9x1BA",
+	"/ip4/65.109.19.136/tcp/4001/p2p/12D3KooWRbWZN3GvLf9CHmozq4vnTzDD4EEoiqtRJxg5FV6Gfjmm",
+	"/ip4/120.226.39.189/tcp/4001/p2p/12D3KooWHRPErPuUPJZ6RRcEzsmgex93fx9V6h6vVCfcSpgyYGGS",
+	"/ip4/120.226.39.187/tcp/4001/p2p/12D3KooWJYRM6GpGnusWxde1s2qL1HMJ7rWM7f5x9UTouhuVVwnA",
+	//"/ip4/127.0.0.1/tcp/4001/p2p/12D3KooWPkMaMkZXzEVY2AzgPwR89kDJ6LKEAhXz6qh2AzG3V7tx",
+
+	// IPFS Bootstrapper nodes.
+	"/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
+	"/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
+	"/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
+	"/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
+
+	// IPFS Cluster Pinning nodes
+	"/ip4/138.201.67.219/tcp/4001/p2p/QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA",
+	"/ip4/138.201.67.219/udp/4001/quic/p2p/QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA",
+	"/ip4/138.201.67.220/tcp/4001/p2p/QmNSYxZAiJHeLdkBg38roksAR9So7Y5eojks1yjEcUtZ7i",
+	"/ip4/138.201.67.220/udp/4001/quic/p2p/QmNSYxZAiJHeLdkBg38roksAR9So7Y5eojks1yjEcUtZ7i",
+	"/ip4/138.201.68.74/tcp/4001/p2p/QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR",
+	"/ip4/138.201.68.74/udp/4001/quic/p2p/QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR",
+	"/ip4/94.130.135.167/tcp/4001/p2p/QmUEMvxS2e7iDrereVYc5SWPauXPyNwxcy9BXZrC1QTcHE",
+	"/ip4/94.130.135.167/udp/4001/quic/p2p/QmUEMvxS2e7iDrereVYc5SWPauXPyNwxcy9BXZrC1QTcHE",
+}
+
+var configs = []string{}
+
 func (i *LocalIPFS) Initial(ctx context.Context) error {
+	// todo: check config exists
+
 	i.repoPath = config.String("deploy.storage.location")
 
 	go i.start(ctx)
@@ -149,6 +181,7 @@ func (i *LocalIPFS) start(ctx context.Context) {
 	}
 	i.api = &api
 	i.node = node
+	go i.connectPeers(ctx)
 
 	<-ctx.Done()
 
@@ -172,4 +205,46 @@ func (i *LocalIPFS) load() error {
 	}
 
 	return nil
+}
+
+func (i *LocalIPFS) connectPeers(ctx context.Context) {
+	var wg sync.WaitGroup
+	peerInfos := make(map[peer.ID]*peer.AddrInfo, len(peers))
+
+	for _, addr := range peers {
+		multiAddr, err := multiaddr.NewMultiaddr(addr)
+		if err != nil {
+			logrus.WithError(err).Debugf("peer address error, skip...")
+			continue
+		}
+
+		pii, err := peer.AddrInfoFromP2pAddr(multiAddr)
+		if err != nil {
+			logrus.WithError(err).Debugf("multiaddr to addr info error, skip...")
+			continue
+		}
+
+		pi, ok := peerInfos[pii.ID]
+		if !ok {
+			pi = &peer.AddrInfo{ID: pii.ID}
+			peerInfos[pi.ID] = pi
+		}
+		pi.Addrs = append(pi.Addrs, pii.Addrs...)
+	}
+
+	wg.Add(len(peerInfos))
+	for _, peerInfo := range peerInfos {
+		go func(peerInfo *peer.AddrInfo) {
+			defer wg.Done()
+
+			err := i.node.PeerHost.Connect(ctx, *peerInfo)
+			if err != nil {
+				logrus.WithError(err).Debugf("connect to %s failed", peerInfo.ID)
+			}
+
+			logrus.Debugf("connect to node %s success", peerInfo.ID)
+		}(peerInfo)
+	}
+
+	wg.Wait()
 }
