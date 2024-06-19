@@ -13,6 +13,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
+type FullStruct struct {
+	Commit string            `yaml:"commit"`
+	Paths  map[string]string `yaml:"paths"`
+}
+
 func CreateDirIncrement(start string, end string) ([]string, error) {
 	repo, err := git.PlainOpen(".")
 	if err != nil {

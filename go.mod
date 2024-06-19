@@ -12,11 +12,10 @@ require (
 	github.com/ipfs/kubo v0.28.0
 	github.com/libp2p/go-libp2p v0.33.2
 	github.com/multiformats/go-multiaddr v0.12.3
-	github.com/multiformats/go-multicodec v0.9.0
-	github.com/multiformats/go-multihash v0.2.3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/tj/assert v0.0.3
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -164,6 +163,8 @@ require (
 	github.com/multiformats/go-multiaddr-dns v0.3.1 // indirect
 	github.com/multiformats/go-multiaddr-fmt v0.1.0 // indirect
 	github.com/multiformats/go-multibase v0.2.0 // indirect
+	github.com/multiformats/go-multicodec v0.9.0 // indirect
+	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-multistream v0.5.0 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/onsi/ginkgo/v2 v2.15.0 // indirect

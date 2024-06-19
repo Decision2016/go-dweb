@@ -57,7 +57,7 @@ func appInitial(path string) error {
 	commit, err := tree.Commit(commitMsg, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "dweb-app",
-			Email: "apps@dweb.org",
+			Email: "apps@d.web",
 		},
 	})
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 
 var appCmd = &cobra.Command{
 	Use:              "app",
+	Short:            "Decentralized application commands",
 	Long:             "Decentralized application commands",
 	TraverseChildren: true,
 }
@@ -50,7 +51,7 @@ var appGenerateCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("The directory file diff between commits are:")
+		fmt.Println("the directory file diff between commits are:")
 		for _, diff := range diffs {
 			fmt.Println(diff)
 		}
@@ -83,7 +84,7 @@ var appCommitCmd = &cobra.Command{
 		now := time.Now()
 		timeString := now.Format("2006-01-02 15:04:05")
 
-		commitMsg := fmt.Sprintf("Dweb commit: %s", timeString)
+		commitMsg := fmt.Sprintf("dweb commit: %s", timeString)
 		commit, err := tree.Commit(commitMsg, &git.CommitOptions{
 			All: true,
 			Author: &object.Signature{
@@ -97,7 +98,7 @@ var appCommitCmd = &cobra.Command{
 			return
 		}
 
-		logrus.Infof("New commit hash: %s", commit)
+		logrus.Infof("new commit hash: %s", commit)
 	},
 }
 

@@ -1,15 +1,15 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/ipfs/boxo/files"
+	"github.com/ipfs/boxo/ipld/merkledag"
+	"github.com/ipfs/boxo/ipld/unixfs"
 	"github.com/ipfs/go-cid"
-	"github.com/multiformats/go-multicodec"
-	"github.com/multiformats/go-multihash"
 	"github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 )
 
 func GetUnixFsFile(path string) (files.File, error) {
@@ -47,62 +47,97 @@ func GetUnixFsNode(path string) (files.Node, error) {
 }
 
 func GetFileCidV0(path string) (*cid.Cid, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		logrus.Debugf("read file %s failed", path)
-		return nil, err
-	}
-	defer f.Close()
-	var fileBytes []byte
-	_, err = f.Read(fileBytes)
+	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		logrus.WithError(err).Error("read file errored")
 		return nil, err
 	}
 
-	prefix := cid.Prefix{
-		Version:  0,
-		Codec:    uint64(multicodec.Raw),
-		MhType:   multihash.SHA2_256,
-		MhLength: -1,
-	}
+	unixFSWrapped := unixfs.FilePBData(fileBytes, uint64(len(fileBytes)))
 
-	c, err := prefix.Sum(fileBytes)
-	if err != nil {
-		logrus.WithError(err).Errorf("calculate cid v0 for file %s failed",
-			path)
-
-		return nil, err
-	}
+	c := merkledag.NodeWithData(unixFSWrapped).Cid()
 
 	return &c, nil
 }
 
-func ListAllCommittedFiles(dir string) error {
+func GetHeadCommit(dir string) (string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	ref, err := repo.Head()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	commit, err := repo.CommitObject(ref.Hash())
 	if err != nil {
-		return err
+		return "", err
+	}
+
+	return commit.Hash.String(), nil
+}
+
+func ListAllCommittedFiles(dir string) ([]string, error) {
+	var results []string
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := repo.Head()
+	if err != nil {
+		return nil, err
+	}
+
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, err
 	}
 
 	tree, err := commit.Tree()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tree.Files().ForEach(func(f *object.File) error {
-		fmt.Println(f.Name)
+		results = append(results, f.Name)
 		return nil
 	})
 
-	return nil
+	return results, nil
+}
+
+func CreateDirIndex(dir string) (*FullStruct, error) {
+	commitStr, err := GetHeadCommit(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	fileList, err := ListAllCommittedFiles(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var full FullStruct
+	full.Commit = commitStr
+	full.Paths = make(map[string]string)
+
+	for _, filename := range fileList {
+		absPath := filepath.Join(dir, filename)
+		if filename == ".gitignore" {
+			continue
+		}
+
+		c, err := GetFileCidV0(absPath)
+		if err != nil {
+			logrus.WithError(err).Debugf("get file %s cid failed", filename)
+			return nil, err
+		}
+
+		full.Paths[filename] = c.String()
+	}
+
+	return &full, nil
 }
