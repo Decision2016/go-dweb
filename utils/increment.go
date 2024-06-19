@@ -18,8 +18,9 @@ type FullStruct struct {
 	Paths  map[string]string `yaml:"paths"`
 }
 
-func CreateDirIncrement(start string, end string) ([]string, error) {
-	repo, err := git.PlainOpen(".")
+func CreateDirIncrement(filepath string, start string, end string) ([]string,
+	error) {
+	repo, err := git.PlainOpen(filepath)
 	if err != nil {
 		return nil, err
 	}

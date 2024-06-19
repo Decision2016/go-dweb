@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -8,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.io/decision2016/go-dweb/deploy"
 	"github.io/decision2016/go-dweb/utils"
+	"os"
 	"time"
 )
 
@@ -45,16 +47,27 @@ var appGenerateCmd = &cobra.Command{
 		"start commit [begin] and end commit [end], " +
 		"defaulting to the most recent two commits.",
 	Run: func(cmd *cobra.Command, args []string) {
-		diffs, err := utils.CreateDirIncrement(appGenerateStart, appGenerateEnd)
+		diffs, err := utils.CreateDirIncrement(filePath, appGenerateStart,
+			appGenerateEnd)
 		if err != nil {
-			logrus.Error(err)
+			logrus.WithError(err).Errorln(
+				"error occurred when creating increment file")
 			return
 		}
 
-		fmt.Println("the directory file diff between commits are:")
-		for _, diff := range diffs {
-			fmt.Println(diff)
+		diffBytes, err := json.Marshal(diffs)
+		if err != nil {
+			logrus.WithError(err).Errorln("marshal diff to json failed")
+			return
 		}
+
+		err = os.WriteFile(".increment", diffBytes, 0700)
+		if err != nil {
+			logrus.WithError(err).Errorln("error occurred writing json to file")
+			return
+		}
+
+		logrus.Infoln("increment file created to .increment")
 	},
 }
 
@@ -102,6 +115,19 @@ var appCommitCmd = &cobra.Command{
 	},
 }
 
+// 部署处理流程：
+// (通过 generate 命令创建) 加载 repo 目录，获取与上一次 commit 的区别
+// 1. 存在差异的文件加入到处理队列，加载进度条，创建一个上传索引文件，标识每个文件的上传状态
+// 2.
+var appDeployCmd = &cobra.Command{
+	Use:   "deploy",
+	Short: "Deploy latest decentralized application to dweb",
+	Long:  "Deploy latest decentralized application to dweb",
+	Run: func(cmd *cobra.Command, args []string) {
+		//incrementFiles, err := utils.CreateDirIncrement()
+	},
+}
+
 func init() {
 	filePath = utils.GetEnvDefault("FILE_PATH", ".")
 
@@ -111,4 +137,5 @@ func init() {
 	appCmd.AddCommand(appInitCmd)
 	appCmd.AddCommand(appGenerateCmd)
 	appCmd.AddCommand(appCommitCmd)
+	appCmd.AddCommand(appDeployCmd)
 }

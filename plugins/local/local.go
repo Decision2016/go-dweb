@@ -84,6 +84,25 @@ func (i *LocalIPFS) Ping(ctx context.Context) error {
 }
 
 func (i *LocalIPFS) Exists(ctx context.Context, source string) (bool, error) {
+	api := *i.api
+
+	c, err := utils.GetFileCidV0(source)
+	if err != nil {
+		logrus.WithError(err).Debugln("get file cid failed")
+		return false, err
+	}
+
+	p, err := path.NewPath(c.String())
+	if err != nil {
+		logrus.WithError(err).Debugln("cid to path failed")
+		return false, err
+	}
+
+	_, err = api.Unixfs().Get(ctx, p)
+	if err != nil {
+		logrus.WithError(err).Debugln("get file node from api failed")
+		return false, err
+	}
 
 	return true, nil
 }

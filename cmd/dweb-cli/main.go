@@ -6,7 +6,11 @@
 
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.io/decision2016/go-dweb/utils"
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "dweb",
@@ -22,5 +26,8 @@ func main() {
 }
 
 func init() {
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&utils.CustomFormatter{})
+
 	rootCmd.AddCommand(appCmd)
 }
