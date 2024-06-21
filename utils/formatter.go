@@ -15,14 +15,9 @@ import (
 	"strings"
 )
 
-// [Level - Datetime] content (file: line - function)
-// Fields:
-//         - "": ""
-//         - "": ""
-
 type CustomFormatter struct{}
 
-// ANSI color codes.
+// ANSI 颜色代码
 const (
 	AnsiReset     = 0
 	AnsiRed       = 31
@@ -41,6 +36,11 @@ const (
 	AnsiHiWhite   = 97
 )
 
+// Format 自定义的 logrus 日志格式化器
+// [Level - Datetime] content (file: line - function)
+// Fields:
+//   - "": ""
+//   - "": ""
 func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var b *bytes.Buffer
 	if entry.Buffer != nil {
@@ -64,7 +64,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	if len(entry.Data) > 0 {
 		fields = "Fields:\n"
 		for k, v := range entry.Data {
-			fields += fmt.Sprintf("      - %s: %s", k, v)
+			fields += fmt.Sprintf("      - %s: %s\n", k, v)
 		}
 
 		log += fields

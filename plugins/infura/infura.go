@@ -4,7 +4,7 @@
   @note:
 **/
 
-package blockforst
+package infura
 
 import (
 	"context"
@@ -18,17 +18,17 @@ import (
 	http "net/http"
 )
 
-type BSIPFS struct {
+type InfuraIPFS struct {
 	baseUrl string
 	id      string
 
 	node *rpc.HttpApi
 }
 
-var Instance BSIPFS
+var Instance InfuraIPFS
 
 // check 检查配置项是否存在
-func (i *BSIPFS) check() bool {
+func (i *InfuraIPFS) check() bool {
 	var cfgs = []string{
 		"deploy.storage.baseurl",
 		"deploy.storage.id",
@@ -36,14 +36,14 @@ func (i *BSIPFS) check() bool {
 
 	for _, item := range cfgs {
 		if !config.Exists(item) {
-			logrus.Errorf("config item %s not exist")
+			logrus.Errorf("config item %s not exist", item)
 			return false
 		}
 	}
 	return true
 }
 
-func (i *BSIPFS) Initial(ctx context.Context) error {
+func (i *InfuraIPFS) Initial(ctx context.Context) error {
 	if !i.check() {
 		return fmt.Errorf("required configuration not exist")
 	}
@@ -63,14 +63,14 @@ func (i *BSIPFS) Initial(ctx context.Context) error {
 	return nil
 }
 
-func (i *BSIPFS) Ping(ctx context.Context) error {
+func (i *InfuraIPFS) Ping(ctx context.Context) error {
 	return nil
 }
-func (i *BSIPFS) Exists(ctx context.Context, identity string) (bool, error) {
+func (i *InfuraIPFS) Exists(ctx context.Context, identity string) (bool, error) {
 	return true, nil
 }
 
-func (i *BSIPFS) Upload(ctx context.Context, name string, source string) error {
+func (i *InfuraIPFS) Upload(ctx context.Context, name string, source string) error {
 	fileNode, err := utils.GetUnixFsNode(source)
 	if err != nil {
 		logrus.WithError(err).Errorln("get file node failed")
@@ -87,7 +87,7 @@ func (i *BSIPFS) Upload(ctx context.Context, name string, source string) error {
 	return nil
 }
 
-func (i *BSIPFS) Download(ctx context.Context, identity string, dst string) error {
+func (i *InfuraIPFS) Download(ctx context.Context, identity string, dst string) error {
 	p, err := path.NewPath(identity)
 	if err != nil {
 		logrus.WithError(err).Debugf("convert string %s to path failed",
@@ -111,7 +111,7 @@ func (i *BSIPFS) Download(ctx context.Context, identity string, dst string) erro
 	return nil
 }
 
-func (i *BSIPFS) Delete(ctx context.Context, identity string) error {
+func (i *InfuraIPFS) Delete(ctx context.Context, identity string) error {
 	p, err := path.NewPath(identity)
 	if err != nil {
 		logrus.WithError(err).Debugf("convert string %s to path failed", identity)
@@ -128,7 +128,7 @@ func (i *BSIPFS) Delete(ctx context.Context, identity string) error {
 	return nil
 }
 
-func (i *BSIPFS) newClient(id string) *http.Client {
+func (i *InfuraIPFS) newClient(id string) *http.Client {
 	return &http.Client{
 		Transport: authTransport{
 			RoundTripper: http.DefaultTransport,

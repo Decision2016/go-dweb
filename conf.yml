@@ -6,6 +6,7 @@ web:
   cache: ".cache"
   # 应用缓存目录
 
+# 应用部署配置
 # 本地 FS 模式下仅能使用 IPFS 本地节点
 deploy:
   mode: "local"
@@ -15,3 +16,6 @@ deploy:
     symbol: "Instance"
   keys:
     secret: ""
+
+# 加载器配置
+loader:
