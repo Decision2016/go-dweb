@@ -139,5 +139,7 @@ func CreateDirIndex(dir string) (*FullStruct, error) {
 		full.Paths[filename] = c.String()
 	}
 
+	full.MerkleRoot()
+
 	return &full, nil
 }
