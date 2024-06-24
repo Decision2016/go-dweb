@@ -109,16 +109,9 @@ func (i *BlockFrostIPFS) Download(ctx context.Context, identity string, dst stri
 func (i *BlockFrostIPFS) Delete(ctx context.Context, identity string) error {
 	api := *i.api
 
-	p, err := path.NewPath(identity)
+	_, err := api.Remove(ctx, identity)
 	if err != nil {
-		logrus.WithError(err).Debugf("convert string %s to path failed",
-			identity)
-		return err
-	}
-
-	_, err = api.Remove(ctx, p.String())
-	if err != nil {
-		logrus.WithError(err).Debugf("remove file %s failed", p.String())
+		logrus.WithError(err).Debugf("remove file %s failed", identity)
 		return err
 	}
 
