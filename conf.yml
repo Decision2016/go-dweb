@@ -19,3 +19,8 @@ deploy:
 
 # 加载器配置
 loader:
+
+plugins:
+  path: "./plugins/"
+  chain: "11111"
+  storage: "22222"

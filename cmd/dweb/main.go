@@ -7,14 +7,14 @@
 package main
 
 import (
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
+	"fmt"
+	"path/filepath"
 )
 
+//var example = "/chain/evm/0x7313AA3d928479Deb7debaC9E9d38286496D542e"
+
 func main() {
-	router := gin.Default()
-	router.Use(static.Serve("/",
-		static.LocalFile("/Users/decision/Repos/go-dweb/static", false),
-	))
-	router.Run(":8080")
+	//fmt.Println(len(strings.Split(example, "/")))
+	fmt.Println(filepath.Join("./plugins/", "infura.so"))
+	fmt.Println(filepath.Join("./plugins", "infura.so"))
 }

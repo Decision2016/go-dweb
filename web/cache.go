@@ -21,6 +21,8 @@ type CacheManager struct {
 	appPath   string // app 的一系列文件的全局存储路径
 }
 
+var cache *CacheManager
+
 // uid 通过哈希求出指定 identity 的唯一标识符
 func (c *CacheManager) uid(identity string) string {
 	sha2 := sha256.New()
@@ -101,14 +103,24 @@ func (c *CacheManager) Exists(identity string) (bool, error) {
 }
 
 // Path 获取到本地的存储路径-工作目录
-func (c *CacheManager) Path(identity string) (string, error) {
+func (c *CacheManager) Path(identity string) string {
 	uid := c.uid(identity)
 	appDir := filepath.Join(c.appPath, uid)
 
-	return appDir, nil
+	return appDir
+}
+
+func (c *CacheManager) IndexPath(identity string) string {
+	uid := c.uid(identity)
+	appDir := filepath.Join(c.indexPath, uid)
+
+	return appDir
 }
 
 // Delete 删除指定 identity 目录
 func (c *CacheManager) Delete(identity string) error {
+	path := c.Path(identity)
 
+	err := os.RemoveAll(path)
+	return err
 }

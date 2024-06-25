@@ -11,8 +11,11 @@ type IChain interface {
 	Identity() (string, error)  // 获取链上存放的索引信息，格式为 /type/version/cid
 	Bootstrap() (string, error) // 获取 P2P 网络连接信息，如果为空则非 P2P 应用
 
-	// （写入）
+	// 写入数据到链上
 	Initial(string, string) error
 	SetIdentity(string) error
 	Join(string) error // 为 P2P 网络提供到的链上数据扩展
+
+	// 当前类的基本操作
+	Setup(string) error
 }
