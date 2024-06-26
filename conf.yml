@@ -22,5 +22,7 @@ loader:
 
 plugins:
   path: "./plugins/"
-  chain: "11111"
-  storage: "22222"
+  chain: "evm"
+  storage: "ipfs"
+
+logger: "debug"

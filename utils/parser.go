@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/gookit/config/v2"
+	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/interfaces"
+	"path/filepath"
 	"plugin"
 	"strings"
 )
@@ -41,6 +43,29 @@ func ParseOnChain(ident string) (*interfaces.IChain, error) {
 		return nil, fmt.Errorf("setup chain interface failed")
 	}
 	return &chain, nil
+}
+
+func URLPathToChainIdent(url string) (string, error) {
+	identArray := strings.Split(url, "/")
+	logrus.Debugf("identity array length: %d", len(identArray))
+	if len(identArray) < 4 {
+		return "", fmt.Errorf("url path not valid")
+	}
+
+	ident := fmt.Sprintf("/chain/%s/%s", identArray[1], identArray[2])
+	return ident, nil
+}
+
+func ExtractFilePath(url string) (string, error) {
+	parts := strings.Split(url, "/")
+
+	if len(parts) < 4 {
+		return "", fmt.Errorf("url path too short")
+	}
+
+	remove := filepath.Join("/", parts[1], parts[2])
+	result := strings.Replace(url, remove, "", 1)
+	return result, nil
 }
 
 func ParseFileStorage(ctx context.Context, ident string) (string,

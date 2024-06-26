@@ -37,7 +37,7 @@ func LoaderInstance() *Loader {
 	return loader
 }
 
-func (l *Loader) Run(ctx context.Context {
+func (l *Loader) Run(ctx context.Context) {
 	l.ctx = ctx
 	go l.processTask()
 }
