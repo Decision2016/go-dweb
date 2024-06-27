@@ -48,7 +48,7 @@ func ParseOnChain(ident string) (*interfaces.IChain, error) {
 func URLPathToChainIdent(url string) (string, error) {
 	identArray := strings.Split(url, "/")
 	logrus.Debugf("identity array length: %d", len(identArray))
-	if len(identArray) < 4 {
+	if len(identArray) < 3 {
 		return "", fmt.Errorf("url path not valid")
 	}
 

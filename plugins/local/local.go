@@ -17,7 +17,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/utils"
 	"os"
+	"path/filepath"
 	"sync"
+	"time"
 )
 
 // 以插件的形式出现，对象的实例化基于配置文件
@@ -84,6 +86,7 @@ func (i *LocalIPFS) Ping(ctx context.Context) error {
 }
 
 func (i *LocalIPFS) Exists(ctx context.Context, source string) (bool, error) {
+	i.waiting()
 	api := *i.api
 
 	c, err := utils.GetFileCidV0(source)
@@ -110,6 +113,7 @@ func (i *LocalIPFS) Exists(ctx context.Context, source string) (bool, error) {
 // Upload 将文件存放到 IPFS 下
 // filepath 在这个项目下统一使用绝对路径，只有显式硬编码时才可以使用相对路径
 func (i *LocalIPFS) Upload(ctx context.Context, name string, source string) error {
+	i.waiting()
 	api := *i.api
 
 	fileNode, err := utils.GetUnixFsNode(source)
@@ -129,9 +133,10 @@ func (i *LocalIPFS) Upload(ctx context.Context, name string, source string) erro
 }
 
 func (i *LocalIPFS) Download(ctx context.Context, identity string, dst string) error {
+	i.waiting()
 	api := *i.api
 
-	p, err := path.NewPath(identity)
+	p, err := path.NewPath(filepath.Join("/ipfs", identity))
 	if err != nil {
 		logrus.WithError(err).Errorf("convert string %s to path failed", identity)
 		return err
@@ -157,6 +162,16 @@ func (i *LocalIPFS) Delete(ctx context.Context, identity string) error {
 	//api := *i.api
 
 	return nil
+}
+
+func (i *LocalIPFS) waiting() {
+	for {
+		if i.api == nil {
+			time.Sleep(1 * time.Second)
+		} else {
+			return
+		}
+	}
 }
 
 func (i *LocalIPFS) start(ctx context.Context) {

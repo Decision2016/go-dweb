@@ -5,6 +5,10 @@ web:
   # full - 全量 FS 模式
   cache: ".cache"
   # 应用缓存目录
+  metrics:
+    enable: true
+    port: 9090
+  port: 8080
 
 # 应用部署配置
 # 本地 FS 模式下仅能使用 IPFS 本地节点
@@ -21,8 +25,8 @@ deploy:
 loader:
 
 plugins:
-  path: "./plugins/"
-  chain: "evm"
+  base: "./plugins"
+  chain: "test"
   storage: "ipfs"
 
 logger: "debug"

@@ -21,7 +21,9 @@ func Waiting(callback func()) {
 		select {
 		case <-sigs:
 			logrus.Info("Receive exit signal, exit...")
-			callback()
+			if callback != nil {
+				callback()
+			}
 			os.Exit(1)
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/utils"
 	"io/fs"
 	"os"
@@ -21,7 +22,19 @@ type CacheManager struct {
 	appPath   string // app 的一系列文件的全局存储路径
 }
 
-var cache *CacheManager
+var cache *CacheManager = &CacheManager{}
+
+func (c *CacheManager) Initial() {
+	ex, err := os.Executable()
+	if err != nil {
+		logrus.WithError(err).Fatalln("get current dir path failed")
+		return
+	}
+
+	path := filepath.Dir(ex)
+	c.indexPath = filepath.Join(path, ".service", "index")
+	c.appPath = filepath.Join(path, ".service", "app")
+}
 
 // uid 通过哈希求出指定 identity 的唯一标识符
 func (c *CacheManager) uid(identity string) string {

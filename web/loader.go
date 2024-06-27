@@ -17,22 +17,35 @@ type Loader struct {
 
 	queue chan string
 	mp    sync.Map
+
+	updateFunc func(uid string)
 }
 
 var (
 	loaderDownloadTimeout = 30 * time.Second
-	once                  sync.Once
-	loader                *Loader
+	//once                  sync.Once
+	//loader                *Loader
 )
 
-func LoaderInstance() *Loader {
-	once.Do(func() {
-		loader = &Loader{
-			ctx:   context.TODO(),
-			queue: make(chan string),
-			mp:    sync.Map{},
-		}
-	})
+//func LoaderInstance() *Loader {
+//	once.Do(func() {
+//		loader = &Loader{
+//			ctx:   context.TODO(),
+//			queue: make(chan string),
+//			mp:    sync.Map{},
+//		}
+//	})
+//
+//	return loader
+//}
+
+func NewLoader(ctx context.Context, callback func(uid string)) *Loader {
+	loader := &Loader{
+		ctx:        ctx,
+		queue:      make(chan string, 30),
+		mp:         sync.Map{},
+		updateFunc: callback,
+	}
 
 	return loader
 }
@@ -58,6 +71,8 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 	count := 0
 	parentDir := cache.Path(chainIdent)
 	errored := false
+
+	uid := cache.uid(chainIdent)
 
 	metrics.LoaderCurrentTaskProgress.Set(0)
 
@@ -85,16 +100,21 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 			return err
 		}
 		logrus.Infoln("download cache removed")
+	} else {
+		logrus.Infof("app with uid %s downloaded", uid)
 	}
+	l.updateFunc(uid)
 
 	return nil
 }
 
 func (l *Loader) processTask() {
 	for {
+		q
 		select {
 		case ident := <-l.queue:
 			metrics.LoaderTaskCountInQueue.Desc()
+			logrus.Debugf("process task %s", ident)
 
 			// 对链上唯一标识进行解析
 			chain, err := utils.ParseOnChain(ident)

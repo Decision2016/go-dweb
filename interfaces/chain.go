@@ -12,10 +12,10 @@ type IChain interface {
 	Bootstrap() (string, error) // 获取 P2P 网络连接信息，如果为空则非 P2P 应用
 
 	// 写入数据到链上
-	Initial(string, string) error
-	SetIdentity(string) error
-	Join(string) error // 为 P2P 网络提供到的链上数据扩展
+	Initial(ident string, url string) error
+	SetIdentity(ident string) error
+	Join(url string) error // 为 P2P 网络提供到的链上数据扩展
 
 	// 当前类的基本操作
-	Setup(string) error
+	Setup(address string) error
 }

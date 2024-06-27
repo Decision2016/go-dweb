@@ -24,7 +24,7 @@ func LoadIndex(filepath string) (*FullStruct, error) {
 	}
 
 	var full FullStruct
-	err = yaml.Unmarshal(dataBytes, full)
+	err = yaml.Unmarshal(dataBytes, &full)
 	if err != nil {
 		return nil, err
 	}
