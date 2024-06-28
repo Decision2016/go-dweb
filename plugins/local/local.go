@@ -148,6 +148,18 @@ func (i *LocalIPFS) Download(ctx context.Context, identity string, dst string) e
 		return err
 	}
 
+	dir := filepath.Dir(dst)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0700)
+		if err != nil {
+			logrus.WithError(err).Errorf("create parent directory failed")
+			return err
+		}
+	} else if err != nil {
+		logrus.WithError(err).Errorf("check parent dir path failed")
+		return err
+	}
+
 	err = files.WriteTo(fileNode, dst)
 	if err != nil {
 		logrus.WithError(err).Errorf("write binary to %s failed", dst)

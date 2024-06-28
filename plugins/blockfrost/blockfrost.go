@@ -97,7 +97,7 @@ func (i *BlockFrostIPFS) Download(ctx context.Context, identity string, dst stri
 		return err
 	}
 
-	err = os.WriteFile(dst, data, 0644)
+	err = os.WriteFile(dst, data, 0700)
 	if err != nil {
 		logrus.WithError(err).Debugf("write byte data to file errored")
 		return err

@@ -78,10 +78,11 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 
 	for p, ident := range index.Paths {
 		dst := filepath.Join(parentDir, p)
-		ctx, cancel := context.WithTimeout(l.ctx, loaderDownloadTimeout)
-		err := (*fs).Download(ctx, ident, dst)
+		//ctx, cancel := context.WithTimeout(l.ctx, loaderDownloadTimeout)
+		//ctx, cancel := context.WithCancel(l.ctx)
+		err := (*fs).Download(l.ctx, ident, dst)
 
-		cancel()
+		//cancel()
 		if err != nil {
 			logrus.WithError(err).Debugf("download file from storage failed")
 			errored = true
@@ -89,8 +90,9 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 		}
 
 		count += 1
-		metrics.LoaderCurrentTaskProgress.Set(100.0 * float64(
-			count) / float64(total))
+		progress := 100.0 * float64(count) / float64(total)
+		metrics.LoaderCurrentTaskProgress.Set(progress)
+		logrus.Debugf("current download progress: %f", progress)
 	}
 
 	if errored {
@@ -110,7 +112,6 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 
 func (l *Loader) processTask() {
 	for {
-		q
 		select {
 		case ident := <-l.queue:
 			metrics.LoaderTaskCountInQueue.Desc()
@@ -140,6 +141,11 @@ func (l *Loader) processTask() {
 
 			// App 的索引信息拉取
 			dst := cache.IndexPath(indexIdent)
+			// todo: remove
+			//if err = os.Remove(dst); err != nil {
+			//	logrus.WithError(err).Debugf("remove existed index file failed")
+			//	return
+			//}
 			err = (*fs).Download(l.ctx, indexIdent, dst)
 			if err != nil {
 				logrus.WithError(err).Debugf("donwload index file failed")
@@ -151,6 +157,7 @@ func (l *Loader) processTask() {
 				logrus.WithError(err).Debugf("load index from file failed")
 				return
 			}
+			logrus.Debugln("load index file from storage success")
 
 			err = l.downloadApp(ident, index, fs)
 			if err != nil {

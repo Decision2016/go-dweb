@@ -38,7 +38,7 @@ func appInitial(path string) error {
 	}
 
 	ignorePath := filepath.Join(formatted, ".gitignore")
-	err = os.WriteFile(ignorePath, []byte(ignoreContent), 0644)
+	err = os.WriteFile(ignorePath, []byte(ignoreContent), 0700)
 	if err != nil {
 		return fmt.Errorf("write ignore file failed")
 	}

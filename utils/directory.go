@@ -41,3 +41,33 @@ func CheckDirExistAndEmpty(path string) (bool, error) {
 
 	return true, nil
 }
+
+func CreateWorkDir() error {
+	ex, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	current := filepath.Dir(ex)
+
+	paths := []string{
+		"./.service/app",
+		"./.service/index",
+		"./plugins",
+	}
+
+	for _, path := range paths {
+		target := filepath.Join(current, path)
+
+		if _, err = os.Stat(target); os.IsNotExist(err) {
+			err = os.MkdirAll(target, 0700)
+			if err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
