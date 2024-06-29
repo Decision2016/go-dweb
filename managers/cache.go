@@ -4,7 +4,7 @@
   @note: cache 文件夹的管理器
 **/
 
-package web
+package managers
 
 import (
 	"crypto/sha256"

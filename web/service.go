@@ -13,6 +13,7 @@ import (
 	"github.com/gookit/config/v2"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/sirupsen/logrus"
+	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/utils"
 	"net/http"
 	"path/filepath"
@@ -31,7 +32,7 @@ type DefaultService struct {
 
 func NewDWebService(ctx context.Context) (*DefaultService, error) {
 	// todo: cache 应该根据配置文件的方式来配置，并且还需要进一步检查工作目录是否存在
-	cache.Initial()
+	managers.cache.Initial()
 
 	c, err := lru.New(300)
 	if err != nil {
@@ -85,7 +86,7 @@ func (s *DefaultService) middleware(c *gin.Context) {
 		return
 	}
 
-	uid := cache.uid(ident)
+	uid := managers.cache.uid(ident)
 	if !s.loaded[uid] {
 		_, ok := s.tried.Get(uid)
 		if !ok {
@@ -118,7 +119,7 @@ func (s *DefaultService) handle(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	location := cache.Path(ident.(string))
+	location := managers.cache.Path(ident.(string))
 	absPath := filepath.Join(location, filePath)
 	c.File(absPath)
 }

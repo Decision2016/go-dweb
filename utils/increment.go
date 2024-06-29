@@ -13,7 +13,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-func CreateDirIncrement(filepath string, start string, end string) ([]string,
+func CreateDirIncrement(filepath string, from string, to string) ([]string,
 	error) {
 	repo, err := git.PlainOpen(filepath)
 	if err != nil {
@@ -22,7 +22,7 @@ func CreateDirIncrement(filepath string, start string, end string) ([]string,
 	var result []string
 	var fromCommit, toCommit *object.Commit
 
-	if start == "" && end == "" {
+	if from == "" && to == "" {
 		ref, err := repo.Head()
 		if err != nil {
 			return nil, err
@@ -50,12 +50,12 @@ func CreateDirIncrement(filepath string, start string, end string) ([]string,
 		fromCommit = commits[1]
 		toCommit = commits[0]
 	} else {
-		fromCommit, err = repo.CommitObject(plumbing.NewHash(start))
+		fromCommit, err = repo.CommitObject(plumbing.NewHash(from))
 		if err != nil {
 			return nil, err
 		}
 
-		toCommit, err = repo.CommitObject(plumbing.NewHash(end))
+		toCommit, err = repo.CommitObject(plumbing.NewHash(to))
 		if err != nil {
 			return nil, err
 		}

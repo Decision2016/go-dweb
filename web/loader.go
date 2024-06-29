@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/interfaces"
+	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/metrics"
 	"github.io/decision2016/go-dweb/utils"
 	"path/filepath"
@@ -69,10 +70,10 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 	fs *interfaces.IFileStorage) error {
 	total := len(index.Paths)
 	count := 0
-	parentDir := cache.Path(chainIdent)
+	parentDir := managers.cache.Path(chainIdent)
 	errored := false
 
-	uid := cache.uid(chainIdent)
+	uid := managers.cache.uid(chainIdent)
 
 	metrics.LoaderCurrentTaskProgress.Set(0)
 
@@ -96,7 +97,7 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 	}
 
 	if errored {
-		err := cache.Delete(chainIdent)
+		err := managers.cache.Delete(chainIdent)
 		if err != nil {
 			logrus.WithError(err).Debugf("error occurred when removing file cache")
 			return err
@@ -140,7 +141,7 @@ func (l *Loader) processTask() {
 			}
 
 			// App 的索引信息拉取
-			dst := cache.IndexPath(indexIdent)
+			dst := managers.cache.IndexPath(indexIdent)
 			// todo: remove
 			//if err = os.Remove(dst); err != nil {
 			//	logrus.WithError(err).Debugf("remove existed index file failed")
