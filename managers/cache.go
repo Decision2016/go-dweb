@@ -15,6 +15,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type CacheManager struct {
@@ -22,7 +23,16 @@ type CacheManager struct {
 	appPath   string // app 的一系列文件的全局存储路径
 }
 
-var cache *CacheManager = &CacheManager{}
+var instance *CacheManager
+var cacheOnce sync.Once
+
+func CacheDefault() *CacheManager {
+	cacheOnce.Do(func() {
+		instance = &CacheManager{}
+	})
+
+	return instance
+}
 
 func (c *CacheManager) Initial() {
 	ex, err := os.Executable()
@@ -36,8 +46,8 @@ func (c *CacheManager) Initial() {
 	c.appPath = filepath.Join(path, ".service", "app")
 }
 
-// uid 通过哈希求出指定 identity 的唯一标识符
-func (c *CacheManager) uid(identity string) string {
+// Uid 通过哈希求出指定 identity 的唯一标识符
+func (c *CacheManager) Uid(identity string) string {
 	sha2 := sha256.New()
 	sha2.Write([]byte(identity))
 
@@ -52,7 +62,7 @@ func (c *CacheManager) Validate(identity string) (bool, error) {
 		return false, err
 	}
 
-	uid := c.uid(identity)
+	uid := c.Uid(identity)
 	indexPath := filepath.Join(c.indexPath, uid)
 	index, err := utils.LoadIndex(indexPath)
 	if err != nil {
@@ -94,7 +104,7 @@ func (c *CacheManager) Validate(identity string) (bool, error) {
 
 // Exists 检查目录下是否存在对应 identity 的目录
 func (c *CacheManager) Exists(identity string) (bool, error) {
-	uid := c.uid(identity)
+	uid := c.Uid(identity)
 	index := filepath.Join(c.indexPath, uid)
 
 	_, err := os.Stat(index)
@@ -117,14 +127,14 @@ func (c *CacheManager) Exists(identity string) (bool, error) {
 
 // Path 获取到本地的存储路径-工作目录
 func (c *CacheManager) Path(identity string) string {
-	uid := c.uid(identity)
+	uid := c.Uid(identity)
 	appDir := filepath.Join(c.appPath, uid)
 
 	return appDir
 }
 
 func (c *CacheManager) IndexPath(identity string) string {
-	uid := c.uid(identity)
+	uid := c.Uid(identity)
 	appDir := filepath.Join(c.indexPath, uid)
 
 	return appDir

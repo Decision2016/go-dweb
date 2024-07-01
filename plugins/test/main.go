@@ -7,7 +7,7 @@
 package main
 
 var Instance = TestChain{
-	identity: "/storage/ipfs/QmXViwQ1frFwabQHtmpt18SUPhnpcRzhWayt9rnTJ8GTay",
+	identity: "/storage/ipfs/a2e24ff4/QmXViwQ1frFwabQHtmpt18SUPhnpcRzhWayt9rnTJ8GTay",
 }
 
 type TestChain struct {

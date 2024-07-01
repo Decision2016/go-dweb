@@ -24,21 +24,7 @@ type Loader struct {
 
 var (
 	loaderDownloadTimeout = 30 * time.Second
-	//once                  sync.Once
-	//loader                *Loader
 )
-
-//func LoaderInstance() *Loader {
-//	once.Do(func() {
-//		loader = &Loader{
-//			ctx:   context.TODO(),
-//			queue: make(chan string),
-//			mp:    sync.Map{},
-//		}
-//	})
-//
-//	return loader
-//}
 
 func NewLoader(ctx context.Context, callback func(uid string)) *Loader {
 	loader := &Loader{
@@ -70,10 +56,12 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 	fs *interfaces.IFileStorage) error {
 	total := len(index.Paths)
 	count := 0
-	parentDir := managers.cache.Path(chainIdent)
+
+	cache := managers.CacheDefault()
+	parentDir := cache.Path(chainIdent)
 	errored := false
 
-	uid := managers.cache.uid(chainIdent)
+	uid := cache.Uid(chainIdent)
 
 	metrics.LoaderCurrentTaskProgress.Set(0)
 
@@ -97,7 +85,7 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 	}
 
 	if errored {
-		err := managers.cache.Delete(chainIdent)
+		err := cache.Delete(chainIdent)
 		if err != nil {
 			logrus.WithError(err).Debugf("error occurred when removing file cache")
 			return err
@@ -112,6 +100,9 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
 }
 
 func (l *Loader) processTask() {
+	cache := managers.CacheDefault()
+	cache.Initial()
+
 	for {
 		select {
 		case ident := <-l.queue:
@@ -141,7 +132,7 @@ func (l *Loader) processTask() {
 			}
 
 			// App 的索引信息拉取
-			dst := managers.cache.IndexPath(indexIdent)
+			dst := cache.IndexPath(indexIdent)
 			// todo: remove
 			//if err = os.Remove(dst); err != nil {
 			//	logrus.WithError(err).Debugf("remove existed index file failed")

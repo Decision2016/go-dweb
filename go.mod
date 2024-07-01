@@ -3,15 +3,18 @@ module github.io/decision2016/go-dweb
 go 1.22.1
 
 require (
-	github.com/gin-contrib/static v1.1.2
+	github.com/blockfrost/blockfrost-go v0.2.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/gookit/config/v2 v2.2.5
+	github.com/hashicorp/golang-lru v1.0.2
 	github.com/ipfs/boxo v0.19.0
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/kubo v0.28.0
 	github.com/libp2p/go-libp2p v0.33.2
 	github.com/multiformats/go-multiaddr v0.12.3
+	github.com/prometheus/client_golang v1.19.0
+	github.com/schollz/progressbar/v3 v3.14.4
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/tj/assert v0.0.3
@@ -30,7 +33,6 @@ require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/blockfrost/blockfrost-go v0.2.2 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
@@ -87,7 +89,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
-	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -198,7 +199,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polydawn/refmt v0.89.0 // indirect
-	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.49.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
@@ -209,7 +209,6 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/samber/lo v1.39.0 // indirect
-	github.com/schollz/progressbar/v3 v3.14.4 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
