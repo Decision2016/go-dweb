@@ -23,3 +23,4 @@ go.work
 .idea
 #/cmd/playground
 /cmd/playground/ipfs/.ipfs/
+/static
