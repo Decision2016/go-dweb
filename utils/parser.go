@@ -12,15 +12,15 @@ import (
 )
 
 func ParseOnChain(ident string) (*interfaces.IChain, error) {
-	identArray := strings.Split(ident, "/")
-	if len(identArray) != 4 || identArray[1] != "chain" {
-		return nil, fmt.Errorf("on-chain identity not correct")
+	var identity Ident
+	err := identity.FromString(ident)
+	if err != nil {
+		return nil, err
 	}
 
 	var symbol plugin.Symbol = nil
-	var err error
 
-	switch identArray[2] {
+	switch identity.SubType {
 	case "evm":
 		symbol, err = LoadSymbol("evm")
 	case "norn":
@@ -37,7 +37,7 @@ func ParseOnChain(ident string) (*interfaces.IChain, error) {
 		return nil, err
 	}
 	chain := symbol.(interfaces.IChain)
-	address := identArray[3]
+	address := identity.Address
 	err = chain.Setup(address)
 	if err != nil {
 		return nil, fmt.Errorf("setup chain interface failed")
@@ -68,20 +68,16 @@ func ExtractFilePath(url string) (string, error) {
 	return result, nil
 }
 
-func ParseFileStorage(ctx context.Context, ident string) (string,
-	*interfaces.IFileStorage,
-	error) {
-	//	/storage/ipfs/QSsdafaw
-	identArray := strings.Split(ident, "/")
-
-	if len(identArray) != 4 || identArray[1] != "storage" {
-		return "", nil, fmt.Errorf("on-chain identity not correct")
+func ParseFileStorage(ctx context.Context, ident string) (string, *interfaces.IFileStorage, error) {
+	var identity Ident
+	err := identity.FromString(ident)
+	if err != nil {
+		return "", nil, err
 	}
 
 	var symbol plugin.Symbol
-	var err error
 
-	symbol, err = LoadSymbol(identArray[2])
+	symbol, err = LoadSymbol(identity.SubType)
 	if err != nil {
 		return "", nil, err
 	}
@@ -92,5 +88,5 @@ func ParseFileStorage(ctx context.Context, ident string) (string,
 		return "", nil, err
 	}
 
-	return identArray[3], &fs, nil
+	return identity.Address, &fs, nil
 }
