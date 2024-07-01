@@ -1,0 +1,11 @@
+deploy:
+  plugin:
+    chain: ""
+    storage: ""
+  private: ""
+  cache: .deploy
+
+plugins:
+  base: .
+
+chain: /chain/evm/0xaaaaaa

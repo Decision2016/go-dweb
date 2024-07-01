@@ -13,7 +13,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "dweb",
+	Use:   "dweb-cli",
 	Short: "DWeb is an extensible decentralized web service framework",
 	Long: "DWeb is an extensible decentralized web service framework " +
 		"that can be used for decentralized deployment of web applications " +
