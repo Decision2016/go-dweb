@@ -70,21 +70,22 @@ func (i *InfuraIPFS) Exists(ctx context.Context, identity string) (bool, error) 
 	return true, nil
 }
 
-func (i *InfuraIPFS) Upload(ctx context.Context, name string, source string) error {
+func (i *InfuraIPFS) Upload(ctx context.Context, name string,
+	source string) (string, error) {
 	fileNode, err := utils.GetUnixFsNode(source)
 	if err != nil {
 		logrus.WithError(err).Errorln("get file node failed")
-		return err
+		return "", err
 	}
 
 	cid, err := i.node.Unixfs().Add(ctx, fileNode)
 	if err != nil {
 		logrus.WithError(err).Errorln("add file failed")
-		return err
+		return "", err
 	}
 
 	logrus.Infof("add file %s with cid %s", name, cid)
-	return nil
+	return cid.String(), nil
 }
 
 func (i *InfuraIPFS) Download(ctx context.Context, identity string, dst string) error {
@@ -101,6 +102,7 @@ func (i *InfuraIPFS) Download(ctx context.Context, identity string, dst string) 
 		return err
 	}
 
+	// todo: if file exists, remove it
 	err = files.WriteTo(fileNode, dst)
 	if err != nil {
 		logrus.WithError(err).Debugf("write binary to %s failed", dst)

@@ -6,6 +6,8 @@
 
 package main
 
+import "time"
+
 var Instance = TestChain{
 	identity: "/storage/ipfs/a2e24ff4/QmXViwQ1frFwabQHtmpt18SUPhnpcRzhWayt9rnTJ8GTay",
 }
@@ -15,6 +17,7 @@ type TestChain struct {
 }
 
 func (tc *TestChain) Identity() (string, error) {
+	time.Sleep(1 * time.Second)
 	return tc.identity, nil
 }
 

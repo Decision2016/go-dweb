@@ -9,23 +9,26 @@ package managers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/interfaces"
+	"github.io/decision2016/go-dweb/utils"
 	"os"
-	"path/filepath"
 	"time"
 )
 
 type progress struct {
-	Commit     string   `json:"commit"`
-	Version    int      `json:"version"`
-	UpdateTime int64    `json:"update_time"`
-	Files      []string `json:"files"`
+	Commit     string            `json:"commit"`
+	Version    int               `json:"version"`
+	UpdateTime int64             `json:"update_time"`
+	Files      []string          `json:"files"`
+	Index      *utils.FullStruct `json:"index"`
 }
 
 type Uploader struct {
 	storage *interfaces.IFileStorage
+	index   *utils.FullStruct
 
 	files  []string
 	commit string
@@ -36,7 +39,7 @@ func NewUploader() *Uploader {
 }
 
 // upload task
-func (u *Uploader) process(ctx context.Context) error {
+func (u *Uploader) Process(ctx context.Context) error {
 	total := len(u.files)
 	bar := progressbar.Default(int64(total))
 
@@ -47,12 +50,13 @@ func (u *Uploader) process(ctx context.Context) error {
 			return err
 		}
 
-		filename := filepath.Base(file)
-		err = (*u.storage).Upload(ctx, filename, file)
+		ident, err := (*u.storage).Upload(ctx, file, file)
 		if err != nil {
 			logrus.WithError(err).Debugln("error occurred when uploading file")
 			return err
 		}
+
+		u.index.Paths[file] = ident
 
 		err = bar.Add(1)
 		if err != nil {
@@ -70,6 +74,7 @@ func (u *Uploader) save(files []string) error {
 		Version:    0,
 		UpdateTime: time.Now().Unix(),
 		Files:      files,
+		Index:      u.index,
 	}
 
 	progressBytes, err := json.Marshal(p)
@@ -111,16 +116,38 @@ func (u *Uploader) load() (*progress, error) {
 	return &p, nil
 }
 
-func (u *Uploader) Setup(commit string, files []string) error {
-	u.commit = commit
+func (u *Uploader) Setup(index *utils.FullStruct, storage *interfaces.IFileStorage) error {
+	u.index = index
+	u.commit = index.Commit
+	u.storage = storage
 
 	p, err := u.load()
 	if err != nil {
 		return err
 	}
+	var opt string
+	uploadList := make([]string, 0)
 
 	if p != nil && p.Commit == u.commit {
-
+		fmt.Printf("found existing progress cache,  override? (Y/N): ")
+		_, err = fmt.Scan(&opt)
+		if err != nil {
+			logrus.WithError(err).Debugln("read option failed")
+			return err
+		}
 	}
 
+	if opt == "N" {
+		u.index = p.Index
+		uploadList = p.Files
+		return nil
+	}
+
+	for k, _ := range index.Paths {
+		if k == "" {
+			uploadList = append(uploadList, k)
+		}
+	}
+	u.files = uploadList
+	return nil
 }

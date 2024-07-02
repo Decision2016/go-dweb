@@ -11,8 +11,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.io/decision2016/go-dweb/deploy"
+	"github.io/decision2016/go-dweb/interfaces"
+	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/utils"
+	"gopkg.in/yaml.v2"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -134,6 +138,18 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
+		err = workDirInitial()
+		if err != nil {
+			logrus.WithError(err).Debugln("work dir initial failed")
+			return
+		}
+
+		err = selectCleanCache()
+		if err != nil {
+			logrus.WithError(err).Errorln("check exists cache failed")
+			return
+		}
+
 		var chainIdent, storageIdent utils.Ident
 		chainPath := config.String("chain", "")
 		err = chainIdent.FromString(chainPath)
@@ -183,29 +199,30 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 		// todo: create .cache file if not exist and delete if exists
-		err = (*storage).Download(ctx, indexIdent, ".origin")
+		err = (*storage).Download(ctx, indexIdent, "./.cache/.origin")
 		if err != nil {
 			logrus.WithError(err).Errorln("download original index failed")
 		}
 
-		origin, err := utils.LoadIndex(".origin")
+		origin, err := utils.LoadIndex("./.cache/.origin")
 		if err != nil {
 			logrus.WithError(err).Errorln("load origin file failed")
 			return
 		}
 
 		diffBar := progressbar.Default(int64(len(index.Paths)))
-		uploadList := make([]string, 0)
 		for k, _ := range index.Paths {
 			p, ok := origin.Paths[k]
 			if ok {
-				err := (*storage).Download(ctx, p, ".compare")
+				downloadPath := filepath.Join("./.cache/app", p)
+
+				err := (*storage).Download(ctx, p, downloadPath)
 				if err != nil {
 					logrus.WithError(err).Errorln("download origin file failed")
 					return
 				}
 
-				originCid, err := utils.GetFileCidV0(".compare")
+				originCid, err := utils.GetFileCidV0(downloadPath)
 				if err != nil {
 					logrus.WithError(err).Errorln(
 						"calculate cid for original file failed")
@@ -220,7 +237,9 @@ var appDeployCmd = &cobra.Command{
 				}
 
 				if originCid.String() != currentCid.String() {
-					uploadList = append(uploadList, k)
+					index.Paths[k] = ""
+				} else {
+					index.Paths[k] = p
 				}
 			}
 
@@ -229,37 +248,73 @@ var appDeployCmd = &cobra.Command{
 				logrus.WithError(err).Errorln("progress bar inc failed")
 			}
 		}
-		//indexBytes, err := yaml.Marshal(index)
-		//if err != nil {
-		//	logrus.WithError(err).Errorln("marshal index to bytes failed")
-		//	return
-		//}
-		//
-		//err = os.WriteFile(".index", indexBytes, 0700)
-		//if err != nil {
-		//	logrus.WithError(err).Errorln("write bytes to file failed")
-		//}
 
-		//storagePath := config.String("deploy.plugin.storage", "")
-		//if storagePath == "" {
-		//	logrus.Error("config item 'deploy.plugin.storage' is empty")
-		//	return
-		//}
-		//
-		//symbol, err := utils.LoadSymbol(storagePath)
-		//if err != nil {
-		//	logrus.WithError(err).Errorln("load plugin failed")
-		//}
-		//
-		//storage, ok := symbol.(interfaces.IFileStorage)
-		//if !ok {
-		//	logrus.Error("convert symbol to storage interface failed")
-		//	return
-		//}
-		//
-		//uploader := managers.NewUploader()
-		//uploader.Setup(index.Commit, index.Paths)
+		storagePath := config.String("deploy.plugin.storage", "")
+		if storagePath == "" {
+			logrus.Error("config item 'deploy.plugin.storage' is empty")
+			return
+		}
 
+		symbol, err := utils.LoadSymbol(storagePath)
+		if err != nil {
+			logrus.WithError(err).Errorln("load plugin failed")
+		}
+
+		s, ok := symbol.(interfaces.IFileStorage)
+		if !ok {
+			logrus.Error("convert symbol to storage interface failed")
+			return
+		}
+
+		uploader := managers.NewUploader()
+		err = uploader.Setup(index, &s)
+		if err != nil {
+			logrus.WithError(err).Errorln("setup uploader index failed")
+			return
+		}
+
+		err = uploader.Process(ctx)
+		if err != nil {
+			logrus.WithError(err).Errorln("process upload task failed")
+			return
+		}
+
+		// 5. marshal index to disk file and update identity
+		indexBytes, err := yaml.Marshal(index)
+		if err != nil {
+			logrus.WithError(err).Errorln("marshal index failed")
+			return
+		}
+
+		err = os.WriteFile("./cache/.index", indexBytes, 0700)
+		if err != nil {
+			logrus.WithError(err).Errorln("write index file failed")
+			return
+		}
+
+		indexNewAddr, err := s.Upload(ctx, ".index", "./cache/.index")
+		if err != nil {
+			logrus.WithError(err).Errorln("upload index file to fs failed")
+			return
+		}
+		newIdent := utils.Ident{
+			Type:    "storage",
+			SubType: "ipfs",
+			Merkle:  index.Root[:8],
+			Address: indexNewAddr,
+		}
+		identStr, err := newIdent.String()
+		if err != nil {
+			logrus.WithError(err).Errorln("ident obj to string failed")
+			return
+		}
+
+		// 6. update on-chain identity
+		err = (*chain).SetIdentity(identStr)
+		if err != nil {
+			logrus.WithError(err).Errorln("update on-chain identity failed")
+			return
+		}
 	},
 }
 

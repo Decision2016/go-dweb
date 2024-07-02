@@ -1,11 +1,11 @@
 deploy:
   plugin:
-    chain: ""
-    storage: ""
+    chain: evm
+    storage: ipfs
   private: ""
   cache: .deploy
 
 plugins:
-  base: .
+  base: ./plugins
 
 chain: /chain/evm/0xaaaaaa

@@ -13,7 +13,7 @@ func AppInitial() {
 	fmt.Print("Work directory path:")
 	_, err := fmt.Scan(&path)
 	if err != nil {
-		logrus.Error("Read path string error.")
+		logrus.Error("read path string error")
 		return
 	}
 

@@ -145,3 +145,8 @@ func CreateDirIndex(dir string) (*FullStruct, error) {
 
 	return &full, nil
 }
+
+func AbsPath(relative string) string {
+	ex, _ := os.Executable()
+	return filepath.Join(filepath.Dir(ex), relative)
+}

@@ -12,9 +12,9 @@ import (
 )
 
 type FullStruct struct {
-	Commit string            `yaml:"commit"`
-	Root   string            `yaml:"root"`
-	Paths  map[string]string `yaml:"paths"`
+	Commit string            `yaml:"commit" json:"commit"`
+	Root   string            `yaml:"root" json:"root"`
+	Paths  map[string]string `yaml:"paths" json:"paths"`
 }
 
 func LoadIndex(filepath string) (*FullStruct, error) {
