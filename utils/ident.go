@@ -38,8 +38,11 @@ func (ident *Ident) FromString(path string) error {
 
 	ident.Type = items[1]
 	ident.SubType = items[2]
-	ident.Merkle = items[3]
-	ident.Address = items[4]
-
+	if ident.Type == "storage" {
+		ident.Merkle = items[3]
+		ident.Address = items[4]
+	} else {
+		ident.Address = items[3]
+	}
 	return nil
 }

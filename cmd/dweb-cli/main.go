@@ -26,6 +26,7 @@ func main() {
 }
 
 func init() {
+	//logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&utils.CustomFormatter{})
 

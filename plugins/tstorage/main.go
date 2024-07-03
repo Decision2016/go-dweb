@@ -49,15 +49,15 @@ func (t TestStorage) Exists(ctx context.Context, src string) (bool, error) {
 
 func (t TestStorage) Upload(ctx context.Context, name string, src string) (string, error) {
 	// 模拟上传文件到 dfs
-	time.Sleep(time.Second / 100)
+	time.Sleep(time.Second)
 	cid, err := utils.GetFileCidV0(src)
 	if err != nil {
 		logrus.WithError(err).Debugln("calculate file cid failed")
 		return "", err
 	}
 
-	// todo: 计算绝对路径
 	dst := filepath.Join(utils.AbsPath(".test"), cid.String())
+	logrus.WithField("dst", dst).Debugf("copy file %s to dst", src)
 	cpCmd := exec.Command("cp", src, dst)
 	err = cpCmd.Run()
 	if err != nil {
@@ -73,7 +73,7 @@ func (t TestStorage) Download(ctx context.Context, identity string, dst string) 
 	err := cpCmd.Run()
 
 	// 模拟从 dfs 下载文件
-	time.Sleep(time.Second / 100)
+	time.Sleep(time.Second)
 
 	if err != nil {
 		logrus.WithError(err).Debugln("upload file failed")

@@ -15,6 +15,7 @@ import (
 	"github.io/decision2016/go-dweb/interfaces"
 	"github.io/decision2016/go-dweb/utils"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -35,13 +36,14 @@ type Uploader struct {
 }
 
 func NewUploader() *Uploader {
-	return nil
+	return &Uploader{}
 }
 
 // upload task
 func (u *Uploader) Process(ctx context.Context) error {
 	total := len(u.files)
 	bar := progressbar.Default(int64(total))
+	filePath := utils.GetEnvDefault("FILE_PATH", ".")
 
 	for idx, file := range u.files {
 		err := u.save(u.files[idx+1:])
@@ -50,7 +52,8 @@ func (u *Uploader) Process(ctx context.Context) error {
 			return err
 		}
 
-		ident, err := (*u.storage).Upload(ctx, file, file)
+		localPath := filepath.Join(filePath, file)
+		ident, err := (*u.storage).Upload(ctx, file, localPath)
 		if err != nil {
 			logrus.WithError(err).Debugln("error occurred when uploading file")
 			return err
@@ -143,8 +146,8 @@ func (u *Uploader) Setup(index *utils.FullStruct, storage *interfaces.IFileStora
 		return nil
 	}
 
-	for k, _ := range index.Paths {
-		if k == "" {
+	for k, v := range index.Paths {
+		if v == "" {
 			uploadList = append(uploadList, k)
 		}
 	}

@@ -130,7 +130,7 @@ var appDeployCmd = &cobra.Command{
 	Long:  "Deploy latest decentralized application to dweb",
 	Run: func(cmd *cobra.Command, args []string) {
 		// todo: 这部分的实现较为复杂，需要合理地划分为多个函数
-		// 1. load chain plugin by config file
+		logrus.Traceln(" ==== 1. load chain plugin by config file ====")
 		ctx := context.Background()
 		err := utils.LoadGlobalConfig("config.yml")
 		if err != nil {
@@ -164,7 +164,7 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
-		// 2. get on-chain storage identity
+		logrus.Traceln(" ==== 2. get on-chain storage identity ====")
 		onChainStorageIdent, err := (*chain).Identity()
 		if err != nil {
 			logrus.WithError(err).Errorln("read on-chain storage identity failed")
@@ -177,7 +177,7 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
-		// 3. calculate local app repo index and merkle && check merkle equal
+		logrus.Traceln(" ==== 3. calculate local app repo index and merkle && check merkle equal ====")
 		//incrementFiles, err := utils.CreateDirIncrement()
 		index, err := utils.CreateDirIndex(filePath)
 		if err != nil {
@@ -191,7 +191,7 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
-		// 4. download original files and check diff
+		logrus.Traceln(" ==== 4. download original files and check diff ====")
 		indexIdent, storage, err := utils.ParseFileStorage(ctx,
 			onChainStorageIdent)
 		if err != nil {
@@ -200,14 +200,16 @@ var appDeployCmd = &cobra.Command{
 		}
 		// todo: create .cache file if not exist and delete if exists
 		err = (*storage).Download(ctx, indexIdent, "./.cache/.origin")
+		var origin *utils.FullStruct = &utils.FullStruct{}
 		if err != nil {
-			logrus.WithError(err).Errorln("download original index failed")
-		}
+			logrus.WithError(err).Debugf("download original index failed")
 
-		origin, err := utils.LoadIndex("./.cache/.origin")
-		if err != nil {
-			logrus.WithError(err).Errorln("load origin file failed")
-			return
+		} else {
+			origin, err = utils.LoadIndex("./.cache/.origin")
+			if err != nil {
+				logrus.WithError(err).Debugf("load origin file failed")
+				return
+			}
 		}
 
 		diffBar := progressbar.Default(int64(len(index.Paths)))
@@ -241,6 +243,8 @@ var appDeployCmd = &cobra.Command{
 				} else {
 					index.Paths[k] = p
 				}
+			} else {
+				index.Paths[k] = ""
 			}
 
 			err = diffBar.Add(1)
@@ -279,20 +283,20 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
-		// 5. marshal index to disk file and update identity
+		logrus.Traceln(" ==== 5. marshal index to disk file and update identity ====")
 		indexBytes, err := yaml.Marshal(index)
 		if err != nil {
 			logrus.WithError(err).Errorln("marshal index failed")
 			return
 		}
 
-		err = os.WriteFile("./cache/.index", indexBytes, 0700)
+		err = os.WriteFile("./.cache/.index", indexBytes, 0700)
 		if err != nil {
 			logrus.WithError(err).Errorln("write index file failed")
 			return
 		}
 
-		indexNewAddr, err := s.Upload(ctx, ".index", "./cache/.index")
+		indexNewAddr, err := s.Upload(ctx, ".index", "./.cache/.index")
 		if err != nil {
 			logrus.WithError(err).Errorln("upload index file to fs failed")
 			return
