@@ -21,7 +21,11 @@ func main() {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
+	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&utils.CustomFormatter{})
+	err := fmt.Errorf("test error info")
+	logrus.WithError(err).Errorf("print error")
+
 	repo, err := git.PlainOpen("/Users/decision/Repos/go-dweb/cmd/playground" +
 		"/git")
 	if err != nil {

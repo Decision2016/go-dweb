@@ -1,0 +1,33 @@
+commit: 691a882690a953cf56ed20f05b7b05cfca79e661
+root: a2e24ff438bfc3d091c5e0f4bbc7e89545f91af2ba42f9c5427fb584886f82fa
+paths:
+  css/app.css: QmaT4vANQ2YQ4WsSrvttGDVm9JuRwLxDJsrz3ctveZxyhU
+  css/bootstrap.css: QmbXAyMzyxrsHfARSgioK7k9NAbb2LQNVK4JU1UKFbEWgi
+  css/bootstrap.css.map: QmWoGueAdvY9zBvUh58sdkAqu9nSn3tVo2xFhkwZpcRH3G
+  index.html: QmZpBPVxYYqwV7rQNCL8i7jAHpy9qwHkEkm9Qv5uz1wsXZ
+  js/bip39-libs.js: QmU3ixbuw4yJ7psyGMFwayRQU1w5zxr2KT4NCvQg8EgGDF
+  js/bitcoinjs-extensions.js: QmbLfybugibKvDAPNBSVWxAUNdB7ZHUfDYTmrJsXWVN6E9
+  js/bootstrap.js: QmWAuj8iYvr35UkBasT2P7nFuNrdFjibhH1EzTkhW5EEmK
+  js/casinocoin-util.js: QmSwkGJWhnAqgNQpRbi3DM11zmn6vXFsW4jipTKehDpri2
+  js/cosmos-util.js: QmUWwmuhMbKdxnvgHS9ymgbGEHajsBBK9JhnQ2r265VAvR
+  js/entropy.js: QmYi2w68aEn17XZoWVK4SbdrxWPL3C4223u7eQKmHCxq1v
+  js/eos-util.js: QmR9kZ8LBDNFy41CTFtvUdh9ngJYxHVbeD4F5HGK21vj4C
+  js/fio-util.js: QmTJ7szrAW8FjMBEaJS1MvNWrkr73iMJDtWNWdHUnB5DYN
+  js/index.js: QmaPCBVxxrTQJgUPqLkTdph882AsJKAUHsrxbjj82mjnPi
+  js/jingtum-util.js: QmVyFi7uS3TVnQhHbPmm8J4tysxoKLwAh9fPP8c3ei7fFn
+  js/jquery-3.2.1.js: QmbKtmWjf9KUjhqEWZedFY4GKrqbhzyQAWit591GgZZ2SF
+  js/jsbip39.js: QmVjNhaq6qZHXZ7rCh7nKNz9eKW6TBvEYQ6XAuqiShS3i3
+  js/ripple-util.js: Qmc1JxwHvaWHZgrBT3pVGZAbbBGbFtvmvTwEiRGwjR5e8h
+  js/segwit-parameters.js: QmQU9LLutLWnWZ9TzCPKtD6dy67d9nrX9Rw3UELNKQopz3
+  js/sjcl-bip39.js: QmZteJyku3gmBUEhQ8xuyxgZCfrsRgGnaQuqnHVxh1n5JQ
+  js/wordlist_chinese_simplified.js: QmW3XDbNY9XZoJ3qtY9SZNCLh3SkTYtaYJqLcVTdQsZ7bx
+  js/wordlist_chinese_traditional.js: QmQD5TPGYjxYw4fqn8DC5ppJGjWbBvf7wYh3HRVdTNAdC9
+  js/wordlist_czech.js: QmRqq962DcQsKgxuUsatczmpRFerXgGGqu5YAUD6CQw1td
+  js/wordlist_english.js: QmWBuadGmBL64Er5y35ry7fMqjiqmCyL7odV8NM4eYhFKW
+  js/wordlist_french.js: QmZWHWXyTcyfwuRH6ckQarL5Q3KSGVsjHeXyNJdcKF7qui
+  js/wordlist_italian.js: QmPjFGLaYeJsTe6ze2Nfb68yuyXgWXypR4AiqGgjHpKo6b
+  js/wordlist_japanese.js: QmdqHLDFnqz66Yu1h4Db31hoqfdKNHEMvLAQ7Ejju6aL4G
+  js/wordlist_korean.js: QmUghmtn5AuRFD2ddEWgYrShtbdxxPqMj3aDYotf5iUVep
+  js/wordlist_portuguese.js: QmaCGA9V8tCK3nA275RDBgRekCuRvc7WdH3ia7E6AzoQaa
+  js/wordlist_spanish.js: QmPswVuKC5Ggs6B3bN9M4yqwTGjLxAC3JihHxiq5iEjksf
+  js/xwc-util.js: QmQDdVfTWGh1cXihVXhGtg1YExgRaycVPR8aQZCXvUh6Ci
