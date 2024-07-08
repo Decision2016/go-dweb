@@ -11,19 +11,19 @@ import (
 	"os"
 )
 
-type FullStruct struct {
+type Index struct {
 	Commit string            `yaml:"commit" json:"commit"`
 	Root   string            `yaml:"root" json:"root"`
 	Paths  map[string]string `yaml:"paths" json:"paths"`
 }
 
-func LoadIndex(filepath string) (*FullStruct, error) {
+func LoadIndex(filepath string) (*Index, error) {
 	dataBytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	var full FullStruct
+	var full Index
 	err = yaml.Unmarshal(dataBytes, &full)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func LoadIndex(filepath string) (*FullStruct, error) {
 	return &full, nil
 }
 
-func (f *FullStruct) MerkleRoot() {
+func (f *Index) MerkleRoot() {
 	cids := make([]string, len(f.Paths))
 
 	for _, path := range f.Paths {

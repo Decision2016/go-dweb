@@ -32,7 +32,8 @@ type DefaultService struct {
 
 func NewDWebService(ctx context.Context) (*DefaultService, error) {
 	// todo: cache 应该根据配置文件的方式来配置，并且还需要进一步检查工作目录是否存在
-	managers.cache.Initial()
+	cache := managers.CacheDefault()
+	cache.Initial()
 
 	c, err := lru.New(300)
 	if err != nil {
@@ -86,7 +87,8 @@ func (s *DefaultService) middleware(c *gin.Context) {
 		return
 	}
 
-	uid := managers.cache.uid(ident)
+	cache := managers.CacheDefault()
+	uid := cache.Uid(ident)
 	if !s.loaded[uid] {
 		_, ok := s.tried.Get(uid)
 		if !ok {
@@ -119,7 +121,8 @@ func (s *DefaultService) handle(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	location := managers.cache.Path(ident.(string))
+	cache := managers.CacheDefault()
+	location := cache.Path(ident.(string))
 	absPath := filepath.Join(location, filePath)
 	c.File(absPath)
 }

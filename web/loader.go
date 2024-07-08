@@ -52,7 +52,7 @@ func (l *Loader) AppendTask(ident string) {
 	l.queue <- ident
 }
 
-func (l *Loader) downloadApp(chainIdent string, index *utils.FullStruct,
+func (l *Loader) downloadApp(chainIdent string, index *utils.Index,
 	fs *interfaces.IFileStorage) error {
 	total := len(index.Paths)
 	count := 0

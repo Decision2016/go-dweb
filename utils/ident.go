@@ -7,6 +7,8 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -45,4 +47,18 @@ func (ident *Ident) FromString(path string) error {
 		ident.Address = items[3]
 	}
 	return nil
+}
+
+func (ident *Ident) Uid() (string, error) {
+	identStr, err := ident.String()
+	if err != nil {
+		return "", err
+	}
+
+	sha2 := sha256.New()
+	sha2.Write([]byte(identStr))
+
+	digest := hex.EncodeToString(sha2.Sum(nil))
+	return digest[:8], nil
+
 }

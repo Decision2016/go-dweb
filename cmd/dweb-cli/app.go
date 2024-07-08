@@ -6,17 +6,12 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/gookit/config/v2"
-	"github.com/schollz/progressbar/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.io/decision2016/go-dweb/deploy"
 	"github.io/decision2016/go-dweb/interfaces"
-	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/utils"
-	"gopkg.in/yaml.v2"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -40,6 +35,20 @@ var (
 	appGenerateStart  string
 	appGenerateEnd    string
 	appGenerateOutput string
+
+	appDeployConfig  string
+	appDeployWorkdir string
+)
+
+// vars for deploy
+var (
+	chainIdent   *utils.Ident
+	storageIdent *utils.Ident
+	index        *utils.Index
+	origin       = &utils.Index{}
+	storage      *interfaces.IFileStorage
+	chain        *interfaces.IChain
+	appDir       string
 )
 
 // env
@@ -138,185 +147,38 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
-		err = workDirInitial()
+		err = workDirInit()
 		if err != nil {
-			logrus.WithError(err).Debugln("work dir initial failed")
+			logrus.WithError(err).Errorln("work directory initialization failed")
 			return
 		}
 
-		err = selectCleanCache()
+		status, err := checkChainIdentity(ctx)
 		if err != nil {
-			logrus.WithError(err).Errorln("check exists cache failed")
+			logrus.WithError(err).Errorln("error occurred when checking on-chain identity")
 			return
 		}
 
-		var chainIdent, storageIdent utils.Ident
-		chainPath := config.String("chain", "")
-		err = chainIdent.FromString(chainPath)
-		if chainPath == "" || err != nil {
-			logrus.Errorln("load chain config failed")
-			return
-		}
-
-		chain, err := utils.ParseOnChain(chainPath)
-		if err != nil {
-			logrus.WithError(err).Errorln("load chain plugin failed")
-			return
-		}
-
-		logrus.Traceln(" ==== 2. get on-chain storage identity ====")
-		onChainStorageIdent, err := (*chain).Identity()
-		if err != nil {
-			logrus.WithError(err).Errorln("read on-chain storage identity failed")
-			return
-		}
-
-		err = storageIdent.FromString(onChainStorageIdent)
-		if err != nil {
-			logrus.WithError(err).Errorln("convert identity to object failed")
-			return
-		}
-
-		logrus.Traceln(" ==== 3. calculate local app repo index and merkle && check merkle equal ====")
-		//incrementFiles, err := utils.CreateDirIncrement()
-		index, err := utils.CreateDirIndex(filePath)
-		if err != nil {
-			logrus.WithError(err).Infof("create full directory index failed")
-			return
-		}
-		index.MerkleRoot()
-
-		if index.Root[:8] == storageIdent.Merkle {
-			logrus.Infof("merkle root equal, deploy process exit")
-			return
-		}
-
-		logrus.Traceln(" ==== 4. download original files and check diff ====")
-		indexIdent, storage, err := utils.ParseFileStorage(ctx,
-			onChainStorageIdent)
-		if err != nil {
-			logrus.WithError(err).Errorln("parse storage ident failed")
-			return
-		}
-		// todo: create .cache file if not exist and delete if exists
-		err = (*storage).Download(ctx, indexIdent, "./.cache/.origin")
-		var origin *utils.FullStruct = &utils.FullStruct{}
-		if err != nil {
-			logrus.WithError(err).Debugf("download original index failed")
-
-		} else {
-			origin, err = utils.LoadIndex("./.cache/.origin")
+		switch status {
+		case onChainUpdate:
+			err = checkStorageDiff(ctx)
 			if err != nil {
-				logrus.WithError(err).Debugf("load origin file failed")
+				logrus.WithError(err).Errorln("check storage diff failed")
 				return
 			}
-		}
-
-		diffBar := progressbar.Default(int64(len(index.Paths)))
-		for k, _ := range index.Paths {
-			p, ok := origin.Paths[k]
-			if ok {
-				downloadPath := filepath.Join("./.cache/app", p)
-
-				err := (*storage).Download(ctx, p, downloadPath)
-				if err != nil {
-					logrus.WithError(err).Errorln("download origin file failed")
-					return
-				}
-
-				originCid, err := utils.GetFileCidV0(downloadPath)
-				if err != nil {
-					logrus.WithError(err).Errorln(
-						"calculate cid for original file failed")
-					return
-				}
-
-				currentCid, err := utils.GetFileCidV0(k)
-				if err != nil {
-					logrus.WithError(err).Errorln(
-						"calculate cid for current file failed")
-					return
-				}
-
-				if originCid.String() != currentCid.String() {
-					index.Paths[k] = ""
-				} else {
-					index.Paths[k] = p
-				}
-			} else {
-				index.Paths[k] = ""
-			}
-
-			err = diffBar.Add(1)
+			err = processUpload(ctx)
 			if err != nil {
-				logrus.WithError(err).Errorln("progress bar inc failed")
+				logrus.WithError(err).Errorln("error occured when upload files")
+				return
 			}
-		}
-
-		storagePath := config.String("deploy.plugin.storage", "")
-		if storagePath == "" {
-			logrus.Error("config item 'deploy.plugin.storage' is empty")
-			return
-		}
-
-		symbol, err := utils.LoadSymbol(storagePath)
-		if err != nil {
-			logrus.WithError(err).Errorln("load plugin failed")
-		}
-
-		s, ok := symbol.(interfaces.IFileStorage)
-		if !ok {
-			logrus.Error("convert symbol to storage interface failed")
-			return
-		}
-
-		uploader := managers.NewUploader()
-		err = uploader.Setup(index, &s)
-		if err != nil {
-			logrus.WithError(err).Errorln("setup uploader index failed")
-			return
-		}
-
-		err = uploader.Process(ctx)
-		if err != nil {
-			logrus.WithError(err).Errorln("process upload task failed")
-			return
-		}
-
-		logrus.Traceln(" ==== 5. marshal index to disk file and update identity ====")
-		indexBytes, err := yaml.Marshal(index)
-		if err != nil {
-			logrus.WithError(err).Errorln("marshal index failed")
-			return
-		}
-
-		err = os.WriteFile("./.cache/.index", indexBytes, 0700)
-		if err != nil {
-			logrus.WithError(err).Errorln("write index file failed")
-			return
-		}
-
-		indexNewAddr, err := s.Upload(ctx, ".index", "./.cache/.index")
-		if err != nil {
-			logrus.WithError(err).Errorln("upload index file to fs failed")
-			return
-		}
-		newIdent := utils.Ident{
-			Type:    "storage",
-			SubType: "ipfs",
-			Merkle:  index.Root[:8],
-			Address: indexNewAddr,
-		}
-		identStr, err := newIdent.String()
-		if err != nil {
-			logrus.WithError(err).Errorln("ident obj to string failed")
-			return
-		}
-
-		// 6. update on-chain identity
-		err = (*chain).SetIdentity(identStr)
-		if err != nil {
-			logrus.WithError(err).Errorln("update on-chain identity failed")
+		case onChainUpload:
+			err = processUpload(ctx)
+			if err != nil {
+				logrus.WithError(err).Errorln("error occured when upload files")
+				return
+			}
+		case onChainNone:
+			logrus.Infof("merkle root not change, deploy canceled")
 			return
 		}
 	},
@@ -329,7 +191,13 @@ func init() {
 	appGenerateCmd.Flags().StringVarP(&appGenerateEnd, "end", "e", "", "end commit hash")
 	appGenerateCmd.Flags().StringVarP(&appGenerateOutput, "output", "o", "", "output file path")
 	appCmd.AddCommand(appInitCmd)
+
 	appCmd.AddCommand(appGenerateCmd)
 	appCmd.AddCommand(appCommitCmd)
+
+	appDeployCmd.Flags().StringVarP(&appDeployWorkdir, "workdir", "o",
+		".deploy", "work directory path")
+	appDeployCmd.Flags().StringVarP(&appDeployConfig, "config", "c",
+		"config.yml", "config file path")
 	appCmd.AddCommand(appDeployCmd)
 }

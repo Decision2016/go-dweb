@@ -9,7 +9,6 @@ package managers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/interfaces"
@@ -20,16 +19,16 @@ import (
 )
 
 type progress struct {
-	Commit     string            `json:"commit"`
-	Version    int               `json:"version"`
-	UpdateTime int64             `json:"update_time"`
-	Files      []string          `json:"files"`
-	Index      *utils.FullStruct `json:"index"`
+	Commit     string       `json:"commit"`
+	Version    int          `json:"version"`
+	UpdateTime int64        `json:"update_time"`
+	Files      []string     `json:"files"`
+	Index      *utils.Index `json:"index"`
 }
 
 type Uploader struct {
 	storage *interfaces.IFileStorage
-	index   *utils.FullStruct
+	index   *utils.Index
 
 	files  []string
 	commit string
@@ -119,7 +118,7 @@ func (u *Uploader) load() (*progress, error) {
 	return &p, nil
 }
 
-func (u *Uploader) Setup(index *utils.FullStruct, storage *interfaces.IFileStorage) error {
+func (u *Uploader) Setup(index *utils.Index, storage *interfaces.IFileStorage) error {
 	u.index = index
 	u.commit = index.Commit
 	u.storage = storage
@@ -128,19 +127,10 @@ func (u *Uploader) Setup(index *utils.FullStruct, storage *interfaces.IFileStora
 	if err != nil {
 		return err
 	}
-	var opt string
 	uploadList := make([]string, 0)
 
 	if p != nil && p.Commit == u.commit {
-		fmt.Printf("found existing progress cache,  override? (Y/N): ")
-		_, err = fmt.Scan(&opt)
-		if err != nil {
-			logrus.WithError(err).Debugln("read option failed")
-			return err
-		}
-	}
-
-	if opt == "N" {
+		logrus.Infoln("found existing process file, continue upload")
 		u.index = p.Index
 		uploadList = p.Files
 		return nil

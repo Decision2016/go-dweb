@@ -11,16 +11,11 @@ import (
 	"strings"
 )
 
-func ParseOnChain(ident string) (*interfaces.IChain, error) {
-	var identity Ident
-	err := identity.FromString(ident)
-	if err != nil {
-		return nil, err
-	}
-
+func ParseOnChain(ident *Ident) (*interfaces.IChain, error) {
 	var symbol plugin.Symbol = nil
+	var err error
 
-	switch identity.SubType {
+	switch ident.SubType {
 	case "evm":
 		symbol, err = LoadSymbol("evm")
 	case "norn":
@@ -37,7 +32,7 @@ func ParseOnChain(ident string) (*interfaces.IChain, error) {
 		return nil, err
 	}
 	chain := symbol.(interfaces.IChain)
-	address := identity.Address
+	address := ident.Address
 	err = chain.Setup(address)
 	if err != nil {
 		return nil, fmt.Errorf("setup chain interface failed")

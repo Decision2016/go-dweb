@@ -111,7 +111,7 @@ func ListAllCommittedFiles(dir string) ([]string, error) {
 
 // CreateDirIndex 创建目录索引，path 通过类 hash 的 cid 标识
 // TODO：注意，这里的索引只能为 ipfs 进行创建，对于其他的 FS 应该是先上传才可以创建，但是可以提前计算 Cid
-func CreateDirIndex(dir string) (*FullStruct, error) {
+func CreateDirIndex(dir string) (*Index, error) {
 	commitStr, err := GetHeadCommit(dir)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func CreateDirIndex(dir string) (*FullStruct, error) {
 		return nil, err
 	}
 
-	var full FullStruct
+	var full Index
 	full.Commit = commitStr
 	full.Paths = make(map[string]string)
 

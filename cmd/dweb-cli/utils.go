@@ -25,6 +25,15 @@ var cachedFiles = []string{
 	".cache/.origin",   // 链上存放拉取到的 index 文件
 }
 
+type onChainStatus uint8
+
+const (
+	onChainDefault onChainStatus = 0x00 // 默认状态，本地运行错误
+	onChainUpload  onChainStatus = 0x01 // 链上无 identity，第一次部署
+	onChainUpdate  onChainStatus = 0x02 // 链上信息需要更新
+	onChainNone    onChainStatus = 0x03 // 链上和本地当前 commit 一致，不需要更新
+)
+
 // workDirInitial 初始化工作目录
 func workDirInitial() error {
 	ex, err := os.Executable()
