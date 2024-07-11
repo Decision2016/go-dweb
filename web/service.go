@@ -31,10 +31,6 @@ type DefaultService struct {
 }
 
 func NewDWebService(ctx context.Context) (*DefaultService, error) {
-	// todo: cache 应该根据配置文件的方式来配置，并且还需要进一步检查工作目录是否存在
-	cache := managers.CacheDefault()
-	cache.Initial()
-
 	c, err := lru.New(300)
 	if err != nil {
 		logrus.WithError(err).Debugf("create lru cache failed")
@@ -80,6 +76,7 @@ func (s *DefaultService) process() {
 
 func (s *DefaultService) middleware(c *gin.Context) {
 	path := c.Request.URL.Path
+	// TODO: 路径的处理
 	ident, err := utils.URLPathToChainIdent(path)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "request path invalid")

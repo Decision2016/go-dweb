@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/gookit/config/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.io/decision2016/go-dweb/deploy"
@@ -147,6 +148,15 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
+		identStr := config.String("chain.identity", "")
+		ident := utils.Ident{}
+		err = ident.FromString(identStr)
+		if err != nil {
+			logrus.WithError(err).Errorln("load identity from config failed")
+			return
+		}
+		chainIdent = &ident
+
 		err = workDirInit()
 		if err != nil {
 			logrus.WithError(err).Errorln("work directory initialization failed")
@@ -172,6 +182,11 @@ var appDeployCmd = &cobra.Command{
 				return
 			}
 		case onChainUpload:
+			err = checkStorageDiff(ctx)
+			if err != nil {
+				logrus.WithError(err).Errorln("check storage diff failed")
+				return
+			}
 			err = processUpload(ctx)
 			if err != nil {
 				logrus.WithError(err).Errorln("error occured when upload files")

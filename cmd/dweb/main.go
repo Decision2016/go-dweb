@@ -22,7 +22,7 @@ func main() {
 	logrus.SetFormatter(&utils.CustomFormatter{})
 
 	ctx := context.Background()
-	err := utils.LoadGlobalConfig("./conf.yml")
+	err := utils.LoadGlobalConfig("./config.yml")
 	if err != nil {
 		logrus.WithError(err).Errorln("load config file failed")
 		return

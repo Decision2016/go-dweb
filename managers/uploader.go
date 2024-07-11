@@ -30,12 +30,15 @@ type Uploader struct {
 	storage *interfaces.IFileStorage
 	index   *utils.Index
 
-	files  []string
-	commit string
+	files    []string
+	commit   string
+	savePath string
 }
 
-func NewUploader() *Uploader {
-	return &Uploader{}
+func NewUploader(archivePath string) *Uploader {
+	return &Uploader{
+		savePath: archivePath,
+	}
 }
 
 // upload task
@@ -85,7 +88,7 @@ func (u *Uploader) save(files []string) error {
 		return err
 	}
 
-	err = os.WriteFile(".deploy", progressBytes, 0700)
+	err = os.WriteFile(u.savePath, progressBytes, 0700)
 	if err != nil {
 		logrus.WithError(err).Debugln("save deploy progress failed")
 		return err
@@ -95,14 +98,14 @@ func (u *Uploader) save(files []string) error {
 }
 
 func (u *Uploader) load() (*progress, error) {
-	_, err := os.Stat(".deploy")
+	_, err := os.Stat(u.savePath)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
 
-	cachedBytes, err := os.ReadFile(".deploy")
+	cachedBytes, err := os.ReadFile(u.savePath)
 	if err != nil {
 		logrus.WithError(err).Debugln("read cached progress file failed")
 		return nil, err

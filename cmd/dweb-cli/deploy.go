@@ -97,18 +97,18 @@ func checkChainIdentity(ctx context.Context) (onChainStatus, error) {
 		return onChainDefault, err
 	}
 
-	err = storageIdent.FromString(chainStorageIdent)
-	if err != nil {
-		logrus.Infof("on-chain identity invalid, first time upload")
-		return onChainUpload, nil
-	}
-
 	index, err = utils.CreateDirIndex(filePath)
 	if err != nil {
 		logrus.WithError(err).Errorln("create full directory index failed")
 		return onChainDefault, err
 	}
 	index.MerkleRoot()
+
+	err = storageIdent.FromString(chainStorageIdent)
+	if err != nil {
+		logrus.Infof("on-chain identity invalid, first time upload")
+		return onChainUpload, nil
+	}
 
 	if index.Root[:8] == storageIdent.Merkle {
 		logrus.Infof("merkle root equal, deploy process exit")
@@ -181,7 +181,9 @@ func checkStorageDiff(ctx context.Context) error {
 // processUpload 上传文件到 DFS 并更新链上索引
 func processUpload(ctx context.Context) error {
 	indexPath := filepath.Join(appDir, ".index")
+	progressPath := filepath.Join(appDir, ".archive")
 	storagePath := config.String("deploy.plugin.storage", "")
+
 	if storagePath == "" {
 		logrus.Error("config item 'deploy.plugin.storage' is empty")
 		return fmt.Errorf("config item not exists")
@@ -198,7 +200,13 @@ func processUpload(ctx context.Context) error {
 		return fmt.Errorf("convert symbol to interface failed")
 	}
 
-	uploader := managers.NewUploader()
+	err = s.Initial(ctx)
+	if err != nil {
+		logrus.WithError(err).Errorln("storage plugin initial failed")
+		return err
+	}
+
+	uploader := managers.NewUploader(progressPath)
 	err = uploader.Setup(index, &s)
 	if err != nil {
 		logrus.WithError(err).Errorln("setup uploader index failed")

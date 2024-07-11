@@ -73,7 +73,10 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.Index,
 
 		//cancel()
 		if err != nil {
-			logrus.WithError(err).Debugf("download file from storage failed")
+			logrus.
+				WithError(err).
+				WithField("dst", dst).
+				Debugf("download file from storage failed")
 			errored = true
 			break
 		}
@@ -105,34 +108,48 @@ func (l *Loader) processTask() {
 
 	for {
 		select {
-		case ident := <-l.queue:
+		case strIdent := <-l.queue:
 			metrics.LoaderTaskCountInQueue.Desc()
-			logrus.Debugf("process task %s", ident)
+			logrus.Debugf("process task %s", strIdent)
 
 			// 对链上唯一标识进行解析
-			chain, err := utils.ParseOnChain(ident)
+			ident := utils.Ident{}
+			err := ident.FromString(strIdent)
+			if err != nil {
+				logrus.WithError(err).Debugf("parse string to identity failed")
+				continue
+			}
+			chain, err := utils.ParseOnChain(&ident)
 			if err != nil {
 				logrus.WithError(err).Debugf(
 					"parser onchain identity %s failed", ident)
-				return
+				continue
 			}
 
 			// 获取链上存放的 FS 索引信息
 			fsIdent, err := (*chain).Identity()
 			if err != nil {
 				logrus.WithError(err).Debug("load on-chain identity failed")
-				return
+				continue
 			}
 
 			// 根据去中心化索引解析得到所需要的 identity
 			indexIdent, fs, err := utils.ParseFileStorage(l.ctx, fsIdent)
 			if err != nil {
-				logrus.WithError(err).Debugf("load filestorage failed")
-				return
+				logrus.
+					WithError(err).
+					WithField("ident", fsIdent).
+					Debugf("load filestorage failed")
+				continue
 			}
 
+			err = (*fs).Initial(l.ctx)
+			if err != nil {
+				logrus.WithError(err).Debugf("file storage initial failed")
+				continue
+			}
 			// App 的索引信息拉取
-			dst := cache.IndexPath(indexIdent)
+			dst := cache.IndexPath(strIdent)
 			// todo: remove
 			//if err = os.Remove(dst); err != nil {
 			//	logrus.WithError(err).Debugf("remove existed index file failed")
@@ -141,17 +158,17 @@ func (l *Loader) processTask() {
 			err = (*fs).Download(l.ctx, indexIdent, dst)
 			if err != nil {
 				logrus.WithError(err).Debugf("donwload index file failed")
-				return
+				continue
 			}
 
 			index, err := utils.LoadIndex(dst)
 			if err != nil {
 				logrus.WithError(err).Debugf("load index from file failed")
-				return
+				continue
 			}
 			logrus.Debugln("load index file from storage success")
 
-			err = l.downloadApp(ident, index, fs)
+			err = l.downloadApp(strIdent, index, fs)
 			if err != nil {
 				logrus.WithError(err).Errorf("download dapp %d failed", ident)
 			}
