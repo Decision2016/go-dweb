@@ -72,6 +72,16 @@ func (t TestStorage) Download(ctx context.Context, identity string, dst string) 
 	cpCmd := exec.Command("cp", src, dst)
 	err := cpCmd.Run()
 
+	dir := filepath.Dir(dst)
+	if _, err = os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0700)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
 	// 模拟从 dfs 下载文件
 	time.Sleep(time.Second)
 
