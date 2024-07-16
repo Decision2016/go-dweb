@@ -6,18 +6,14 @@
 
 package main
 
-import (
-	"flag"
-)
-
-var (
-	cfg string
-)
-
-func init() {
-	flag.StringVar(&cfg, "c", "./conf.yml", "Config file path")
-}
-
-func workDirInitial() {
-
-}
+//var (
+//	cfg string
+//)
+//
+//func init() {
+//	flag.StringVar(&cfg, "c", "./conf.yml", "Config file path")
+//}
+//
+//func workDirInitial() {
+//
+//}

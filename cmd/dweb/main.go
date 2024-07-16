@@ -7,42 +7,28 @@
 package main
 
 import (
-	"context"
-	"github.com/gookit/config/v2"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.io/decision2016/go-dweb/utils"
-	"github.io/decision2016/go-dweb/web"
-	"net/http"
 )
 
+var rootCmd = &cobra.Command{
+	Use:   "dweb",
+	Short: "DWeb is an extensible decentralized web service framework",
+	Long: "DWeb is an extensible decentralized web service framework " +
+		"that can be used for decentralized deployment of web applications " +
+		"such as React, Vue, etc",
+	TraverseChildren: true,
+}
+
 func main() {
+	rootCmd.Execute()
+}
+
+func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&utils.CustomFormatter{})
 
-	ctx := context.Background()
-	err := utils.LoadGlobalConfig("./config.yml")
-	if err != nil {
-		logrus.WithError(err).Errorln("load config file failed")
-		return
-	}
-
-	enableMetrics := config.Bool("web.metrics.enable", false)
-	if enableMetrics {
-		port := config.String("web.metrics.port", "9090")
-		metricPort := ":" + port
-		http.Handle("/metrics", promhttp.Handler())
-		go http.ListenAndServe(metricPort, nil)
-		logrus.Infof("metrics server start on localhost%s", metricPort)
-	}
-
-	service, err := web.NewDWebService(ctx)
-	if err != nil {
-		logrus.WithError(err).Errorln("create new dweb service failed")
-		return
-	}
-	service.Run()
-
-	utils.Waiting(nil)
+	rootCmd.AddCommand(serviceCmd)
 }

@@ -16,22 +16,6 @@ import (
 	"time"
 )
 
-var appCmd = &cobra.Command{
-	Use:              "app",
-	Short:            "Decentralized application commands",
-	Long:             "Decentralized application commands",
-	TraverseChildren: true,
-}
-
-var appInitCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize decentralized application directory",
-	Long:  "Initialize decentralized application directory",
-	Run: func(cmd *cobra.Command, args []string) {
-		deploy.AppInitial()
-	},
-}
-
 var (
 	appGenerateStart  string
 	appGenerateEnd    string
@@ -56,6 +40,22 @@ var (
 var (
 	filePath string
 )
+
+var appCmd = &cobra.Command{
+	Use:              "app",
+	Short:            "Decentralized application commands",
+	Long:             "Decentralized application commands",
+	TraverseChildren: true,
+}
+
+var appInitCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize decentralized application directory",
+	Long:  "Initialize decentralized application directory",
+	Run: func(cmd *cobra.Command, args []string) {
+		deploy.AppInitial()
+	},
+}
 
 var appGenerateCmd = &cobra.Command{
 	Use:   "generate",
