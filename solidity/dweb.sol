@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./Idweb.sol";
@@ -20,10 +20,10 @@ contract DWeb is IDWeb, Ownable{
         return _boostrap;
     }
 
-    function initial(string calldata identity) external onlyOwner returns (bool) {
+    function initial(string calldata ident) external onlyOwner returns (bool) {
         require(!inited, "DWeb: contract has been inited");
 
-        _identity = identity;
+        _identity = ident;
         inited = true;
         return true;
     }

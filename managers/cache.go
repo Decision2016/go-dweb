@@ -44,6 +44,8 @@ func (c *CacheManager) Initial() {
 	path := filepath.Dir(ex)
 	c.indexPath = filepath.Join(path, ".service", "index")
 	c.appPath = filepath.Join(path, ".service", "app")
+	// todo: 如果 service 不存在则进行初始化
+	logrus.Infof("service cache manager inited")
 }
 
 // Uid 通过哈希求出指定 identity 的唯一标识符

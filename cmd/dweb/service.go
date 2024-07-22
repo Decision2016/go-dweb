@@ -79,11 +79,18 @@ var serviceLocalCmd = &cobra.Command{
 			ident, err := utils.URLPathToChainIdent(path)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, "request path invalid")
-				logrus.WithError(err).Debugf("error occurred when convert url to path")
+				logrus.
+					WithError(err).
+					WithField("path", path).
+					Debugf("error occurred when convert url to path")
 				return
 			}
 
 			if ident != localIdentity {
+				logrus.
+					WithField("ident", ident).
+					WithField("local", localIdentity).
+					Debugf("identity not equal")
 				c.JSON(http.StatusBadRequest, "identity not equal to option")
 				return
 			}
@@ -115,4 +122,7 @@ func init() {
 		"local service identity (required)")
 	serviceLocalCmd.MarkFlagRequired("path")
 	serviceLocalCmd.MarkFlagRequired("identity")
+
+	serviceCmd.AddCommand(serviceLocalCmd)
+	serviceCmd.AddCommand(serviceRunCmd)
 }

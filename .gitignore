@@ -24,3 +24,5 @@ go.work
 #/cmd/playground
 /cmd/playground/ipfs/.ipfs/
 /static
+cmd/dweb/config.yml
+cmd/dweb-cli/config.yml
