@@ -25,7 +25,7 @@ type NornChain struct {
 	address string
 }
 
-func (n NornChain) Identity() (string, error) {
+func (n *NornChain) Identity() (string, error) {
 	req := &pb.ReadContractAddressReq{
 		Address: proto.String(n.address),
 		Key:     proto.String("identity"),
@@ -44,7 +44,7 @@ func (n NornChain) Identity() (string, error) {
 	return string(identity), nil
 }
 
-func (n NornChain) Bootstrap() (string, error) {
+func (n *NornChain) Bootstrap() (string, error) {
 	req := &pb.ReadContractAddressReq{
 		Address: proto.String(n.address),
 		Key:     proto.String("bootstrap"),
@@ -63,11 +63,11 @@ func (n NornChain) Bootstrap() (string, error) {
 	return string(identity), nil
 }
 
-func (n NornChain) Initial(ident string, url string) error {
+func (n *NornChain) Initial(ident string, url string) error {
 	return n.SetIdentity(ident)
 }
 
-func (n NornChain) SetIdentity(ident string) error {
+func (n *NornChain) SetIdentity(ident string) error {
 	req := &pb.SendTransactionWithDataReq{
 		Type:     proto.String("set"),
 		Receiver: proto.String(n.address),
@@ -83,7 +83,7 @@ func (n NornChain) SetIdentity(ident string) error {
 	return nil
 }
 
-func (n NornChain) Join(url string) error {
+func (n *NornChain) Join(url string) error {
 	req := &pb.SendTransactionWithDataReq{
 		Type:     proto.String("set"),
 		Receiver: proto.String(n.address),
@@ -99,7 +99,7 @@ func (n NornChain) Join(url string) error {
 	return nil
 }
 
-func (n NornChain) Setup(address string) error {
+func (n *NornChain) Setup(address string) error {
 	n.rpc = config.String("chain.url")
 	n.privateKey = config.String("chain.private")
 

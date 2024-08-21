@@ -85,6 +85,7 @@ func (s *DefaultService) middleware(c *gin.Context) {
 	}
 
 	cache := managers.CacheDefault()
+	// 判断对应的 dapp web 是否已经加载到本地
 	uid := cache.Uid(ident)
 	if !s.loaded[uid] {
 		_, ok := s.tried.Get(uid)
@@ -118,6 +119,7 @@ func (s *DefaultService) handle(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, nil)
 	}
 
+	// 根据 ident 获取本地的路径信息
 	cache := managers.CacheDefault()
 	location := cache.Path(ident.(string))
 	absPath := filepath.Join(location, filePath)

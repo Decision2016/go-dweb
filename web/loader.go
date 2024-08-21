@@ -172,6 +172,8 @@ func (l *Loader) processTask() {
 			if err != nil {
 				logrus.WithError(err).Errorf("download dapp %d failed", ident)
 			}
+
+			l.mp.Delete(strIdent)
 		}
 	}
 }
