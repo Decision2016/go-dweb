@@ -19,8 +19,9 @@ import (
 )
 
 type CacheManager struct {
-	indexPath string // index 文件存储全局路径
-	appPath   string // app 的一系列文件的全局存储路径
+	indexPath  string // index 文件存储全局路径
+	appPath    string // app 的一系列文件的全局存储路径
+	updatePath string
 }
 
 var instance *CacheManager
@@ -44,6 +45,7 @@ func (c *CacheManager) Initial() {
 	path := filepath.Dir(ex)
 	c.indexPath = filepath.Join(path, ".service", "index")
 	c.appPath = filepath.Join(path, ".service", "app")
+	c.updatePath = filepath.Join(path, ".service", "update")
 	// todo: 如果 service 不存在则进行初始化
 	logrus.Infof("service cache manager inited")
 }
@@ -142,10 +144,33 @@ func (c *CacheManager) IndexPath(identity string) string {
 	return appDir
 }
 
+func (c *CacheManager) UpdatePath() string {
+	return c.updatePath
+}
+
 // Delete 删除指定 identity 目录
 func (c *CacheManager) Delete(identity string) error {
 	path := c.Path(identity)
 
 	err := os.RemoveAll(path)
 	return err
+}
+
+func (c *CacheManager) Clean(path string) error {
+	err := os.RemoveAll(path)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(path, 0700)
+	return err
+}
+
+func (c *CacheManager) RemoveIfExists(path string) error {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		err = os.RemoveAll(path)
+		return err
+	}
+
+	return nil
 }

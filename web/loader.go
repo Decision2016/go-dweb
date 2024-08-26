@@ -7,29 +7,42 @@ import (
 	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/metrics"
 	"github.io/decision2016/go-dweb/utils"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
 )
 
+type TaskType int8
+
+const (
+	TypeLoad   TaskType = 0x01
+	TypeUpdate TaskType = 0x02
+)
+
+type LoadTask struct {
+	Ident *utils.Ident
+	Type  TaskType
+}
+
 // Loader 接收任务从链上拉取配置信息，然后获取状态
 type Loader struct {
 	ctx context.Context
 
-	queue chan string
+	queue chan *LoadTask
 	mp    sync.Map
 
 	updateFunc func(uid string)
 }
 
-var (
+const (
 	loaderDownloadTimeout = 30 * time.Second
 )
 
 func NewLoader(ctx context.Context, callback func(uid string)) *Loader {
 	loader := &Loader{
 		ctx:        ctx,
-		queue:      make(chan string, 30),
+		queue:      make(chan *LoadTask, 30),
 		mp:         sync.Map{},
 		updateFunc: callback,
 	}
@@ -42,23 +55,38 @@ func (l *Loader) Run(ctx context.Context) {
 	go l.processTask()
 }
 
-func (l *Loader) AppendTask(ident string) {
-	_, ok := l.mp.Load(ident)
+func (l *Loader) AppendTask(task *LoadTask) {
+	metrics.LoaderTaskCountInQueue.Inc()
+	l.queue <- task
+}
+
+func (l *Loader) AppendTaskByString(identStr string) {
+	// 检查队列中是否存在对应的 ident
+	_, ok := l.mp.Load(identStr)
 	if ok {
 		return
 	}
 
+	ident := utils.Ident{}
+	err := ident.FromString(identStr)
+	if err != nil {
+		return
+	}
+
+	task := &LoadTask{
+		Ident: &ident,
+		Type:  TypeLoad,
+	}
 	metrics.LoaderTaskCountInQueue.Inc()
-	l.queue <- ident
+	l.queue <- task
 }
 
 func (l *Loader) downloadApp(chainIdent string, index *utils.Index,
-	fs *interfaces.IFileStorage) error {
+	fs *interfaces.IFileStorage, parentDir string) error {
 	total := len(index.Paths)
 	count := 0
 
 	cache := managers.CacheDefault()
-	parentDir := cache.Path(chainIdent)
 	errored := false
 
 	uid := cache.Uid(chainIdent)
@@ -108,24 +136,19 @@ func (l *Loader) processTask() {
 
 	for {
 		select {
-		case strIdent := <-l.queue:
+		case task := <-l.queue:
 			metrics.LoaderTaskCountInQueue.Desc()
-			logrus.Debugf("process task %s", strIdent)
 
 			// 对链上唯一标识进行解析
-			ident := utils.Ident{}
-			err := ident.FromString(strIdent)
-			if err != nil {
-				logrus.WithError(err).Debugf("parse string to identity failed")
-				continue
-			}
-			chain, err := utils.ParseOnChain(&ident)
+			ident := task.Ident
+			chain, err := utils.ParseOnChain(ident)
 			if err != nil {
 				logrus.WithError(err).Debugf(
 					"parser onchain identity %s failed", ident)
 				continue
 			}
 
+			strIdent, _ := ident.String()
 			// 获取链上存放的 FS 索引信息
 			fsIdent, err := (*chain).Identity()
 			if err != nil {
@@ -148,13 +171,29 @@ func (l *Loader) processTask() {
 				logrus.WithError(err).Debugf("file storage initial failed")
 				continue
 			}
-			// App 的索引信息拉取
-			dst := cache.IndexPath(strIdent)
-			// todo: remove
-			//if err = os.Remove(dst); err != nil {
-			//	logrus.WithError(err).Debugf("remove existed index file failed")
-			//	return
-			//}
+
+			var dst, appDir string
+			switch task.Type {
+			case TypeLoad:
+				dst = cache.IndexPath(strIdent)
+				appDir = cache.Path(strIdent)
+			case TypeUpdate:
+				updateDir := cache.UpdatePath()
+				err = cache.Clean(updateDir)
+				if err != nil {
+					logrus.WithError(err).Debugf("clean update directory failed")
+					continue
+				}
+
+				dst = filepath.Join(updateDir, "index")
+				appDir = filepath.Join(updateDir, "app")
+			}
+
+			if err = cache.RemoveIfExists(dst); err != nil {
+				logrus.WithError(err).Debugf("error occurred when deleting index file")
+				continue
+			}
+
 			err = (*fs).Download(l.ctx, indexIdent, dst)
 			if err != nil {
 				logrus.WithError(err).Debugf("donwload index file failed")
@@ -168,11 +207,27 @@ func (l *Loader) processTask() {
 			}
 			logrus.Debugln("load index file from storage success")
 
-			err = l.downloadApp(strIdent, index, fs)
+			err = l.downloadApp(strIdent, index, fs, appDir)
 			if err != nil {
 				logrus.WithError(err).Errorf("download dapp %d failed", ident)
 			}
 
+			if task.Type == TypeUpdate {
+				realIndexPath := cache.IndexPath(strIdent)
+				realAppDir := cache.Path(strIdent)
+
+				if err = os.Rename(dst, realIndexPath); err != nil {
+					logrus.WithError(err).Debugf(
+						"move temporary index to workdir failed")
+					continue
+				}
+
+				if err = os.Rename(appDir, realAppDir); err != nil {
+					logrus.WithError(err).Debugf(
+						"move temporary app to workdir failed")
+					continue
+				}
+			}
 			l.mp.Delete(strIdent)
 		}
 	}

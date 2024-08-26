@@ -20,9 +20,10 @@ import (
 )
 
 type DefaultService struct {
-	port   int
-	router *gin.Engine
-	loader *Loader
+	port     int
+	router   *gin.Engine
+	loader   *Loader
+	observer *Observer
 
 	loaded map[string]bool
 	tried  *lru.Cache
@@ -51,6 +52,11 @@ func NewDWebService(ctx context.Context) (*DefaultService, error) {
 	loader.Run(ctx)
 	service.loader = loader
 
+	observer := ObserverDefault()
+	observer.SetLoader(loader)
+	observer.Run()
+	service.observer = observer
+
 	return &service, nil
 }
 
@@ -77,29 +83,42 @@ func (s *DefaultService) process() {
 func (s *DefaultService) middleware(c *gin.Context) {
 	path := c.Request.URL.Path
 	// TODO: 路径的处理
-	ident, err := utils.URLPathToChainIdent(path)
+	identPath, err := utils.URLPathToChainIdent(path)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "request path invalid")
 		logrus.WithError(err).Debugf("error occurred when convert url to path")
+		c.JSON(http.StatusBadRequest, SimpleMsg(errRequestPathInvalid))
 		return
 	}
 
 	cache := managers.CacheDefault()
 	// 判断对应的 dapp web 是否已经加载到本地
-	uid := cache.Uid(ident)
-	if !s.loaded[uid] {
-		_, ok := s.tried.Get(uid)
-		if !ok {
-			logrus.Debugf("append task %s to loader", uid)
-			s.loader.AppendTask(ident)
-			s.tried.Add(uid, nil)
-		}
+	uid := cache.Uid(identPath)
 
-		c.JSON(http.StatusNotFound, "app not exist or waiting for load")
-		return
+	if !s.loaded[uid] {
+		// 先校验本地的文件是否存在以及是否完整, 如果存在且完整则设置 cache 为已加载
+		valid, err := cache.Validate(identPath)
+		if valid {
+			s.loaded[uid] = true
+		} else {
+			logrus.WithError(err).Debugf("application %s invalid on disk")
+			s.loader.AppendTaskByString(identPath)
+			s.tried.Add(uid, nil)
+			c.JSON(http.StatusInternalServerError, "application not valid, "+
+				"waiting for reload...")
+			return
+		}
 	}
 
-	c.Set("ident", ident)
+	ident := &utils.Ident{}
+	err = ident.FromString(identPath)
+	if err != nil {
+		logrus.WithError(err).Debugf("parse %s to identity failed", identPath)
+		c.JSON(http.StatusBadRequest, SimpleMsg(errRequestPathInvalid))
+		return
+	}
+	s.observer.Append(ident)
+
+	c.Set("ident", identPath)
 	c.Set("uid", uid)
 	c.Next()
 }
