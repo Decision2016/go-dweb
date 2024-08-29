@@ -182,10 +182,10 @@ func checkStorageDiff(ctx context.Context) error {
 func processUpload(ctx context.Context) error {
 	indexPath := filepath.Join(appDir, ".index")
 	progressPath := filepath.Join(appDir, ".archive")
-	storagePath := config.String("deploy.plugin.storage", "")
+	storagePath := config.String("plugins.storage", "")
 
 	if storagePath == "" {
-		logrus.Error("config item 'deploy.plugin.storage' is empty")
+		logrus.Error("config item 'plugins.storage' is empty")
 		return fmt.Errorf("config item not exists")
 	}
 

@@ -194,6 +194,8 @@ func (l *Loader) processTask() {
 				continue
 			}
 
+			logrus.Debugf("download index %s to destintation: %s",
+				indexIdent, dst)
 			err = (*fs).Download(l.ctx, indexIdent, dst)
 			if err != nil {
 				logrus.WithError(err).Debugf("donwload index file failed")

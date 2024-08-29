@@ -20,10 +20,10 @@ import (
 )
 
 type DefaultService struct {
-	port     int
-	router   *gin.Engine
-	loader   *Loader
-	observer *Observer
+	port    int
+	router  *gin.Engine
+	loader  *Loader
+	checker *Checker
 
 	loaded map[string]bool
 	tried  *lru.Cache
@@ -52,10 +52,10 @@ func NewDWebService(ctx context.Context) (*DefaultService, error) {
 	loader.Run(ctx)
 	service.loader = loader
 
-	observer := ObserverDefault()
-	observer.SetLoader(loader)
-	observer.Run()
-	service.observer = observer
+	checker := CheckerDefault()
+	checker.SetLoader(loader)
+	checker.Run()
+	service.checker = checker
 
 	return &service, nil
 }
@@ -96,11 +96,14 @@ func (s *DefaultService) middleware(c *gin.Context) {
 
 	if !s.loaded[uid] {
 		// 先校验本地的文件是否存在以及是否完整, 如果存在且完整则设置 cache 为已加载
+		// todo: 这里的检验方法需要修复一下
 		valid, err := cache.Validate(identPath)
 		if valid {
 			s.loaded[uid] = true
 		} else {
-			logrus.WithError(err).Debugf("application %s invalid on disk")
+			logrus.
+				WithError(err).
+				Debugf("application %s invalid on disk", uid)
 			s.loader.AppendTaskByString(identPath)
 			s.tried.Add(uid, nil)
 			c.JSON(http.StatusInternalServerError, "application not valid, "+
@@ -116,7 +119,7 @@ func (s *DefaultService) middleware(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, SimpleMsg(errRequestPathInvalid))
 		return
 	}
-	s.observer.Append(ident)
+	s.checker.Append(ident)
 
 	c.Set("ident", identPath)
 	c.Set("uid", uid)

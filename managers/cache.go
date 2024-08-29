@@ -38,7 +38,7 @@ func CacheDefault() *CacheManager {
 func (c *CacheManager) Initial() {
 	ex, err := os.Executable()
 	if err != nil {
-		logrus.WithError(err).Fatalln("get current dir path failed")
+		logrus.WithError(err).Fatalln("obtain current dir path failed")
 		return
 	}
 
@@ -100,6 +100,10 @@ func (c *CacheManager) Validate(identity string) (bool, error) {
 	}
 	dirMerkle := utils.MerkleRoot(cids)
 	if dirMerkle != merkle {
+		logrus.WithFields(logrus.Fields{
+			"merkle": dirMerkle,
+			"expect": merkle,
+		}).Debugf("mekrle root hash not equal")
 		return false, fmt.Errorf("mekrle root hash not equal")
 	}
 

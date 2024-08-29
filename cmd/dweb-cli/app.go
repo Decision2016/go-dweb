@@ -178,7 +178,8 @@ var appDeployCmd = &cobra.Command{
 			}
 			err = processUpload(ctx)
 			if err != nil {
-				logrus.WithError(err).Errorln("error occured when upload files")
+				logrus.WithError(err).Errorln(
+					"error occurred when upload files")
 				return
 			}
 		case onChainUpload:
@@ -189,7 +190,8 @@ var appDeployCmd = &cobra.Command{
 			}
 			err = processUpload(ctx)
 			if err != nil {
-				logrus.WithError(err).Errorln("error occured when upload files")
+				logrus.WithError(err).Errorln(
+					"error occurred when upload files")
 				return
 			}
 		case onChainNone:

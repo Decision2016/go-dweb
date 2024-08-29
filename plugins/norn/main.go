@@ -17,6 +17,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var Instance NornChain
+
 type NornChain struct {
 	rpc        string
 	privateKey string
@@ -27,7 +29,7 @@ type NornChain struct {
 
 func (n *NornChain) Identity() (string, error) {
 	req := &pb.ReadContractAddressReq{
-		Address: proto.String(n.address),
+		Address: proto.String(n.address[2:]),
 		Key:     proto.String("identity"),
 	}
 
@@ -36,7 +38,7 @@ func (n *NornChain) Identity() (string, error) {
 		return "", err
 	}
 
-	identity, err := hex.DecodeString(*rsp.Hex)
+	identity := *rsp.Hex
 	if err != nil {
 		return "", err
 	}
@@ -46,7 +48,7 @@ func (n *NornChain) Identity() (string, error) {
 
 func (n *NornChain) Bootstrap() (string, error) {
 	req := &pb.ReadContractAddressReq{
-		Address: proto.String(n.address),
+		Address: proto.String(n.address[2:]),
 		Key:     proto.String("bootstrap"),
 	}
 
@@ -70,7 +72,7 @@ func (n *NornChain) Initial(ident string, url string) error {
 func (n *NornChain) SetIdentity(ident string) error {
 	req := &pb.SendTransactionWithDataReq{
 		Type:     proto.String("set"),
-		Receiver: proto.String(n.address),
+		Receiver: proto.String(n.address[2:]),
 		Key:      proto.String("identity"),
 		Value:    proto.String(ident),
 	}
@@ -86,7 +88,7 @@ func (n *NornChain) SetIdentity(ident string) error {
 func (n *NornChain) Join(url string) error {
 	req := &pb.SendTransactionWithDataReq{
 		Type:     proto.String("set"),
-		Receiver: proto.String(n.address),
+		Receiver: proto.String(n.address[2:]),
 		Key:      proto.String("boostrap"),
 		Value:    proto.String(url),
 	}
@@ -102,6 +104,7 @@ func (n *NornChain) Join(url string) error {
 func (n *NornChain) Setup(address string) error {
 	n.rpc = config.String("chain.url")
 	n.privateKey = config.String("chain.private")
+	n.address = address
 
 	conn, err := grpc.Dial(n.rpc, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

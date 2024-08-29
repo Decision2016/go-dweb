@@ -22,16 +22,16 @@ type TestStorage struct {
 }
 
 func (t TestStorage) Initial(ctx context.Context) error {
-	if _, err := os.Stat(".test"); !os.IsNotExist(err) {
+	if _, err := os.Stat("../.test"); !os.IsNotExist(err) {
 		return err
 	} else {
-		err = os.RemoveAll(".test")
+		err = os.RemoveAll("../.test")
 		if err != nil {
 			return err
 		}
 	}
 
-	err := os.Mkdir(".test", 0700)
+	err := os.Mkdir("../.test", 0700)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (t TestStorage) Upload(ctx context.Context, name string, src string) (strin
 		return "", err
 	}
 
-	dst := filepath.Join(utils.AbsPath(".test"), cid.String())
+	dst := filepath.Join(utils.AbsPath("../.test"), cid.String())
 	logrus.WithField("dst", dst).Debugf("copy file %s to dst", src)
 	cpCmd := exec.Command("cp", src, dst)
 	err = cpCmd.Run()
@@ -68,7 +68,7 @@ func (t TestStorage) Upload(ctx context.Context, name string, src string) (strin
 }
 
 func (t TestStorage) Download(ctx context.Context, identity string, dst string) error {
-	src := filepath.Join(utils.AbsPath(".test"), identity)
+	src := filepath.Join(utils.AbsPath("../.test"), identity)
 	cpCmd := exec.Command("cp", src, dst)
 	err := cpCmd.Run()
 
