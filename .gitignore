@@ -26,3 +26,4 @@ go.work
 /static
 cmd/dweb/config.yml
 cmd/dweb-cli/config.yml
+tests
