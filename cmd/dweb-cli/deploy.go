@@ -159,6 +159,7 @@ func checkStorageDiff(ctx context.Context) error {
 			}
 
 			if originCid.String() != v {
+				// 通过设置 path 为空标识上传文件
 				index.Paths[k] = ""
 			} else {
 				index.Paths[k] = p

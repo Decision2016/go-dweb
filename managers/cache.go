@@ -94,6 +94,7 @@ func (c *CacheManager) Validate(identity string) (bool, error) {
 		cids = append(cids, cid.String())
 		return nil
 	})
+	logrus.Infof("validate cid slice length: %d", len(cids))
 
 	if err != nil {
 		return false, err

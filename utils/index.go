@@ -33,7 +33,7 @@ func LoadIndex(filepath string) (*Index, error) {
 }
 
 func (f *Index) MerkleRoot() {
-	cids := make([]string, len(f.Paths))
+	cids := make([]string, 0)
 
 	for _, path := range f.Paths {
 		cids = append(cids, path)

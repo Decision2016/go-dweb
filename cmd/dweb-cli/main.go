@@ -12,6 +12,11 @@ import (
 	"github.io/decision2016/go-dweb/utils"
 )
 
+// env
+var (
+	filePath string
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "dweb-cli",
 	Short: "DWeb is an extensible decentralized web service framework",
@@ -26,9 +31,11 @@ func main() {
 }
 
 func init() {
+	filePath = utils.GetEnvDefault("FILE_PATH", ".")
 	//logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&utils.CustomFormatter{})
 
 	rootCmd.AddCommand(appCmd)
+	rootCmd.AddCommand(testCmd)
 }

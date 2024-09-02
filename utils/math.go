@@ -9,18 +9,20 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"slices"
 )
 
 func MerkleRoot(data []string) string {
 	count := len(data)
 	log := Log2(count)
 	var root string
+	slices.Sort(data)
 
 	if (2 << (log - 1)) == count {
 		log -= 1
 	}
 
-	size := (1 << log)
+	size := 1 << log
 	contents := make([][]byte, size, size)
 	for idx, s := range data {
 		contents[idx] = []byte(s)

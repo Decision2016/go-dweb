@@ -36,11 +36,6 @@ var (
 	appDir       string
 )
 
-// env
-var (
-	filePath string
-)
-
 var appCmd = &cobra.Command{
 	Use:              "app",
 	Short:            "Decentralized application commands",
@@ -202,8 +197,6 @@ var appDeployCmd = &cobra.Command{
 }
 
 func init() {
-	filePath = utils.GetEnvDefault("FILE_PATH", ".")
-
 	appGenerateCmd.Flags().StringVarP(&appGenerateStart, "start", "s", "", "start commit hash")
 	appGenerateCmd.Flags().StringVarP(&appGenerateEnd, "end", "e", "", "end commit hash")
 	appGenerateCmd.Flags().StringVarP(&appGenerateOutput, "output", "o", "", "output file path")
