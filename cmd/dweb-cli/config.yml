@@ -1,11 +1,12 @@
 deploy:
-  plugin:
-    chain: evm
-    storage: ipfs
-  private: ""
   cache: .deploy
 
 plugins:
+  chain: norn
+  storage: ipfs
   base: ./plugins
 
-chain: /chain/evm/0xaaaaaa
+chain:
+  identity: /chain/norn/0x5e4589cA617e06B2134B6856882154826BF02047
+  private: b74c971fb8588c821c2d17e1d96785f2228b8a503960d55e261d926e5870478a
+

@@ -18,8 +18,10 @@ deploy:
     type: "ipfs" # ipfs/ar/custom
     location: ".ipfs"
     symbol: "Instance"
-  keys:
     secret: ""
+  chain:
+    private: ""
+    id: ""
 
 # 加载器配置
 loader:
