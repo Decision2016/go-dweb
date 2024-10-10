@@ -134,8 +134,6 @@ var appDeployCmd = &cobra.Command{
 	Short: "Deploy latest decentralized application to dweb",
 	Long:  "Deploy latest decentralized application to dweb",
 	Run: func(cmd *cobra.Command, args []string) {
-		// todo: 这部分的实现较为复杂，需要合理地划分为多个函数
-		logrus.Traceln(" ==== 1. load chain plugin by config file ====")
 		ctx := context.Background()
 		err := utils.LoadGlobalConfig("config.yml")
 		if err != nil {
@@ -174,7 +172,7 @@ var appDeployCmd = &cobra.Command{
 			err = processUpload(ctx)
 			if err != nil {
 				logrus.WithError(err).Errorln(
-					"error occurred when upload files")
+					"error occurred when uploading files")
 				return
 			}
 		case onChainUpload:

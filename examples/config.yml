@@ -1,0 +1,17 @@
+deploy:
+  cache: .deploy
+  identity:
+
+plugins:
+  chain: norn
+  storage: ipfs
+  base: ./plugins
+
+chain:
+  url:
+  authorize:
+
+storage:
+  url:
+  authorize:
+

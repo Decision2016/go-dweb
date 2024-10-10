@@ -85,3 +85,24 @@ func ParseFileStorage(ctx context.Context, ident string) (string, *interfaces.IF
 
 	return identity.Address, &fs, nil
 }
+
+func ParseLogLevel(level string) logrus.Level {
+	switch level {
+	case "trace":
+		return logrus.TraceLevel
+	case "debug":
+		return logrus.DebugLevel
+	case "info":
+		return logrus.InfoLevel
+	case "warn":
+		return logrus.WarnLevel
+	case "error":
+		return logrus.ErrorLevel
+	case "fatal":
+		return logrus.FatalLevel
+	case "panic":
+		return logrus.PanicLevel
+	default:
+		return logrus.InfoLevel
+	}
+}

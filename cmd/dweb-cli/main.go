@@ -15,6 +15,7 @@ import (
 // env
 var (
 	filePath string
+	level    string
 )
 
 var rootCmd = &cobra.Command{
@@ -31,8 +32,11 @@ func main() {
 }
 
 func init() {
+	rootCmd.Flags().StringVarP(&level, "level", "l", "info", "console debug level")
+
 	filePath = utils.GetEnvDefault("FILE_PATH", ".")
-	//logrus.SetLevel(logrus.TraceLevel)
+
+	logrus.SetLevel(utils.ParseLogLevel(level))
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&utils.CustomFormatter{})
 

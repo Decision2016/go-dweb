@@ -106,8 +106,7 @@ func (s *DefaultService) middleware(c *gin.Context) {
 				Debugf("application %s invalid on disk", uid)
 			s.loader.AppendTaskByString(identPath)
 			s.tried.Add(uid, nil)
-			c.JSON(http.StatusInternalServerError, "application not valid, "+
-				"waiting for reload...")
+			c.JSON(http.StatusInternalServerError, SimpleMsg(errApplicationInvalid))
 			return
 		}
 	}
@@ -132,13 +131,13 @@ func (s *DefaultService) handle(c *gin.Context) {
 	filePath, err := utils.ExtractFilePath(path)
 	if err != nil {
 		logrus.WithError(err).Debugf("file path not exist")
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusBadRequest, SimpleMsg(errFilePathNotFound))
 		return
 	}
 
 	ident, ok := c.Get("ident")
 	if !ok {
-		c.JSON(http.StatusInternalServerError, nil)
+		c.JSON(http.StatusInternalServerError, SimpleMsg(errIdentityNotFound))
 	}
 
 	// 根据 ident 获取本地的路径信息
