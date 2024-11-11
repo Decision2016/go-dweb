@@ -6,7 +6,6 @@ import (
 	"github.com/gookit/config/v2"
 	"github.com/sirupsen/logrus"
 	"github.io/decision2016/go-dweb/interfaces"
-	"path/filepath"
 	"plugin"
 	"strings"
 )
@@ -58,7 +57,8 @@ func ExtractFilePath(url string) (string, error) {
 		return "", fmt.Errorf("url path too short")
 	}
 
-	remove := filepath.Join("/", parts[1], parts[2])
+	remove := "/" + parts[1] + "/" + parts[2]
+	logrus.Debugf("%s, %s", remove, url)
 	result := strings.Replace(url, remove, "", 1)
 	return result, nil
 }

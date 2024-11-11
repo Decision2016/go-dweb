@@ -17,6 +17,7 @@ import (
 	"github.io/decision2016/go-dweb/utils"
 	"github.io/decision2016/go-dweb/web"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -102,7 +103,16 @@ var serviceLocalCmd = &cobra.Command{
 				return
 			}
 
+			logrus.Infof("%s", filePath)
 			absPath := filepath.Join(localFilePath, filePath)
+
+			_, err = os.Stat(absPath)
+			if err != nil {
+				indexFile := filepath.Join(localFilePath, "index.html")
+				c.File(indexFile)
+				return
+			}
+
 			c.File(absPath)
 		})
 
