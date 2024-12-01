@@ -1,5 +1,8 @@
 deploy:
   cache: .deploy
+  storage:
+    path: ./wallet.json
+    url: https://arweave.net/
 
 plugins:
   chain: norn

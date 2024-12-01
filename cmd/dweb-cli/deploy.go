@@ -239,7 +239,7 @@ func processUpload(ctx context.Context) error {
 	}
 	newIdent := utils.Ident{
 		Type:    "storage",
-		SubType: "ipfs",
+		SubType: storagePath,
 		Merkle:  index.Root[:8],
 		Address: indexNewAddr,
 	}
@@ -249,6 +249,7 @@ func processUpload(ctx context.Context) error {
 		logrus.WithError(err).Errorln("ident obj to string failed")
 		return err
 	}
+	logrus.Infof("DWApp deployed on %s with MID: %s", storagePath, identStr)
 
 	err = (*chain).SetIdentity(identStr)
 	if err != nil {
