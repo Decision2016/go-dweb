@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func workDirInit() error {
@@ -189,6 +190,7 @@ func checkStorageDiff(ctx context.Context) error {
 
 // processUpload 上传文件到 DFS 并更新链上索引
 func processUpload(ctx context.Context) error {
+	logrus.Infof("current timestamp t0 = %d (ms)", time.Now().UnixMilli())
 	indexPath := filepath.Join(appDir, ".index")
 	progressPath := filepath.Join(appDir, ".archive")
 	storagePath := config.String("plugins.storage", "")
@@ -201,6 +203,7 @@ func processUpload(ctx context.Context) error {
 	symbol, err := utils.LoadSymbol(storagePath)
 	if err != nil {
 		logrus.WithError(err).Errorln("load plugin failed")
+		return err
 	}
 
 	s, ok := symbol.(interfaces.IFileStorage)
@@ -257,6 +260,7 @@ func processUpload(ctx context.Context) error {
 		logrus.WithError(err).Errorln("ident obj to string failed")
 		return err
 	}
+	logrus.Infof("current timestamp t1 = %d (ms)", time.Now().UnixMilli())
 	logrus.Infof("DWApp deployed on %s with MID: %s", storagePath, identStr)
 
 	err = (*chain).SetIdentity(identStr)

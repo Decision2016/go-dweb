@@ -16,14 +16,16 @@ import (
 	"path/filepath"
 )
 
+var Instance = ArweaveStorage{}
+
 type ArweaveStorage struct {
 	wallet *goar.Wallet
 	client *goar.Client
 }
 
 func (s *ArweaveStorage) Initial(ctx context.Context) error {
-	walletPath := config.String("deploy.storage.path")
-	url := config.String("deploy.storage.url")
+	walletPath := config.String("storage.path")
+	url := config.String("storage.url")
 
 	wallet, err := goar.NewWalletFromPath(walletPath, url)
 	if err != nil {
