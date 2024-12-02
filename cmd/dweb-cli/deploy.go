@@ -7,7 +7,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gookit/config/v2"
 	"github.com/schollz/progressbar/v3"
@@ -16,6 +18,7 @@ import (
 	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/utils"
 	"gopkg.in/yaml.v2"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -262,6 +265,20 @@ func processUpload(ctx context.Context) error {
 	}
 	logrus.Infof("current timestamp t1 = %d (ms)", time.Now().UnixMilli())
 	logrus.Infof("DWApp deployed on %s with MID: %s", storagePath, identStr)
+
+	identBody, _ := json.Marshal(newIdent)
+	body := bytes.NewBuffer(identBody)
+	req, err := http.NewRequest("POST", "http://43.153.70.240:47777/new", body)
+	if err != nil {
+		logrus.WithError(err).Errorln("new request failed")
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	_, _ = client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	err = (*chain).SetIdentity(identStr)
 	if err != nil {
