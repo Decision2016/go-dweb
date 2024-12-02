@@ -78,6 +78,13 @@ func workDirInit() error {
 			logrus.WithError(err).Debugf("create source dir failed")
 			return err
 		}
+
+		originDir := filepath.Join(appDir, "origin")
+		err = os.MkdirAll(originDir, 0700)
+		if err != nil {
+			logrus.WithError(err).Debugf("create source dir failed")
+			return err
+		}
 	}
 
 	return nil
@@ -104,6 +111,7 @@ func checkChainIdentity(ctx context.Context) (onChainStatus, error) {
 	}
 	index.MerkleRoot()
 
+	storageIdent = &utils.Ident{}
 	err = storageIdent.FromString(chainStorageIdent)
 	if err != nil {
 		logrus.Infof("on-chain identity invalid, first time upload")

@@ -16,6 +16,7 @@ import (
 	"github.io/decision2016/go-dweb/managers"
 	"github.io/decision2016/go-dweb/utils"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -144,6 +145,14 @@ func (s *DefaultService) handle(c *gin.Context) {
 	cache := managers.CacheDefault()
 	location := cache.Path(ident.(string))
 	absPath := filepath.Join(location, filePath)
+
+	_, err = os.Stat(absPath)
+	if err != nil {
+		indexFile := filepath.Join(location, "index.html")
+		c.File(indexFile)
+		return
+	}
+
 	c.File(absPath)
 }
 

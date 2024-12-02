@@ -79,6 +79,18 @@ func (s *ArweaveStorage) Download(ctx context.Context, identity string,
 		return err
 	}
 
+	dir := filepath.Dir(dst)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0700)
+		if err != nil {
+			logrus.WithError(err).Errorf("create parent directory failed")
+			return err
+		}
+	} else if err != nil {
+		logrus.WithError(err).Errorf("check parent dir path failed")
+		return err
+	}
+
 	err = os.WriteFile(dst, fd, 0700)
 	if err != nil {
 		logrus.WithError(err).Debugf("write data to file %s failed", dst)
