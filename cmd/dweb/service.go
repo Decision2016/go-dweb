@@ -33,6 +33,7 @@ var serviceCmd = &cobra.Command{
 	TraverseChildren: true,
 }
 
+// service run 指令：运行一个 DWeb 本地服务
 var serviceRunCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run DWeb service",
@@ -65,6 +66,7 @@ var serviceRunCmd = &cobra.Command{
 	},
 }
 
+// service local 指令：根据本地目录运行一个 DWeb 本地服务
 var serviceLocalCmd = &cobra.Command{
 	Use:   "local",
 	Short: "Run DWeb local service",

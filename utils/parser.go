@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// ParseOnChain 通过 Ident 获取 IChain 插件类型
 func ParseOnChain(ident *Ident) (*interfaces.IChain, error) {
 	var symbol plugin.Symbol = nil
 	var err error

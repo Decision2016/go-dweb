@@ -12,6 +12,7 @@ import (
 	"slices"
 )
 
+// MerkleRoot Merkle Tree 根哈希值计算
 func MerkleRoot(data []string) string {
 	count := len(data)
 	log := Log2(count)

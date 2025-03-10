@@ -60,6 +60,7 @@ func (l *Loader) AppendTask(task *LoadTask) {
 	l.queue <- task
 }
 
+// AppendTaskByString 添加加载任务
 func (l *Loader) AppendTaskByString(identStr string) {
 	// 检查队列中是否存在对应的 ident
 	_, ok := l.mp.Load(identStr)
@@ -81,6 +82,7 @@ func (l *Loader) AppendTaskByString(identStr string) {
 	l.queue <- task
 }
 
+// downloadApp 根据 index 中的映射关系表下载 DWApp
 func (l *Loader) downloadApp(chainIdent string, index *utils.Index,
 	fs *interfaces.IFileStorage, parentDir string) error {
 	total := len(index.Paths)
@@ -93,6 +95,7 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.Index,
 
 	metrics.LoaderCurrentTaskProgress.Set(0)
 
+	// 遍历并调用 IStorage 类型的插件下载
 	for p, ident := range index.Paths {
 		dst := filepath.Join(parentDir, p)
 		//ctx, cancel := context.WithTimeout(l.ctx, loaderDownloadTimeout)
@@ -130,6 +133,7 @@ func (l *Loader) downloadApp(chainIdent string, index *utils.Index,
 	return nil
 }
 
+// processTask DWApp 加载器的运行协程
 func (l *Loader) processTask() {
 	cache := managers.CacheDefault()
 	cache.Initial()

@@ -1,7 +1,7 @@
 /**
   @author: decision
   @date: 2024/8/21
-  @note:
+  @note: DWeb Service 的返回错误列表
 **/
 
 package web

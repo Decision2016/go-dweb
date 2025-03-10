@@ -52,6 +52,7 @@ var appInitCmd = &cobra.Command{
 	},
 }
 
+// app generate 指令：生成两个 commit 之间的差异文件
 var appGenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate incremental data index",
@@ -83,6 +84,7 @@ var appGenerateCmd = &cobra.Command{
 	},
 }
 
+// app commit 指令：进行一次 commit
 var appCommitCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Create new commit in workspace",
@@ -156,6 +158,7 @@ var appDeployCmd = &cobra.Command{
 			return
 		}
 
+		// DWApp 链上信息检查，分为三种情况
 		status, err := checkChainIdentity(ctx)
 		if err != nil {
 			logrus.WithError(err).Errorln("error occurred when checking on-chain identity")
@@ -164,6 +167,7 @@ var appDeployCmd = &cobra.Command{
 
 		switch status {
 		case onChainUpdate:
+			// 链上无 identity，首次部署
 			err = checkStorageDiff(ctx)
 			if err != nil {
 				logrus.WithError(err).Errorln("check storage diff failed")
@@ -176,6 +180,7 @@ var appDeployCmd = &cobra.Command{
 				return
 			}
 		case onChainUpload:
+			// 链上信息需要更新，检查差异并上传
 			err = checkStorageDiff(ctx)
 			if err != nil {
 				logrus.WithError(err).Errorln("check storage diff failed")
@@ -188,6 +193,7 @@ var appDeployCmd = &cobra.Command{
 				return
 			}
 		case onChainNone:
+			// 链上和本地当前 commit 一致，不需要更新
 			logrus.Infof("merkle root not change, deploy canceled")
 			return
 		}

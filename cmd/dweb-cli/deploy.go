@@ -1,7 +1,7 @@
 /**
   @author: decision
   @date: 2024/7/1
-  @note:
+  @note: DWApp 部署的主要逻辑代码
 **/
 
 package main
@@ -50,6 +50,7 @@ func workDirInit() error {
 		return err
 	}
 
+	// 读取到上传的缓存，判断是否断点续传或重新上传
 	if len(entities) != 0 {
 		fmt.Printf("found cached file in %s, continue to upload? (Y/N): ")
 		_, err = fmt.Scan(&opt)
@@ -59,6 +60,7 @@ func workDirInit() error {
 		}
 	}
 
+	// 如果不进行断点续传，则清除缓存文件
 	if opt == "N" {
 		err = os.RemoveAll(appDir)
 		if err != nil {
@@ -90,25 +92,31 @@ func workDirInit() error {
 	return nil
 }
 
+// checkChainIdentity 判断链上状态与本地 DWApp
 func checkChainIdentity(ctx context.Context) (onChainStatus, error) {
 	var err error
+
+	// 根据 MID 加载 IChain 类型的插件
 	chain, err = utils.ParseOnChain(chainIdent)
 	if err != nil {
 		logrus.WithError(err).Errorln("load chain plugin failed")
 		return onChainDefault, err
 	}
 
+	// 获取链上存放的 DID 信息
 	chainStorageIdent, err := (*chain).Identity()
 	if err != nil {
 		logrus.WithError(err).Errorln("get storage ident failed")
 		return onChainDefault, err
 	}
 
+	// 根据本地的 DWApp 创建索引
 	index, err = utils.CreateDirIndex(filePath)
 	if err != nil {
 		logrus.WithError(err).Errorln("create full directory index failed")
 		return onChainDefault, err
 	}
+	// 计算 Merkle Tree 哈希值
 	index.MerkleRoot()
 
 	storageIdent = &utils.Ident{}
@@ -118,8 +126,10 @@ func checkChainIdentity(ctx context.Context) (onChainStatus, error) {
 		return onChainUpload, nil
 	}
 
+	// 与链上的 DID 中的 merkle tree 哈希值进行对比
 	if index.Root[:8] == storageIdent.Merkle {
 		logrus.Infof("merkle root equal, deploy process exit")
+		// 返回链上信息一致，无需更新
 		return onChainNone, fmt.Errorf("merkle equal")
 	}
 
@@ -131,6 +141,7 @@ func checkChainIdentity(ctx context.Context) (onChainStatus, error) {
 		return onChainDefault, err
 	}
 
+	// 根据链上 DID 下载元文件
 	err = (*storage).Download(ctx, originIndex, originIndexPath)
 	if err != nil {
 		logrus.WithError(err).Errorln("download origin index failed")
@@ -142,18 +153,22 @@ func checkChainIdentity(ctx context.Context) (onChainStatus, error) {
 		}
 	}
 
+	// 本次的 DWApp 需要更新，返回 onChainUpdate
 	return onChainUpdate, nil
 }
 
+// checkStorageDiff 文件差异判断
 func checkStorageDiff(ctx context.Context) error {
 	originPath := filepath.Join(appDir, "origin")
 	diffBar := progressbar.Default(int64(len(index.Paths)))
+
+	// 遍历链上 DID 对应的 DWApp 文件
 	for k, v := range index.Paths {
 		p, ok := origin.Paths[k]
 		if ok {
+			// 将文件下载到本地
 			downloadPath := filepath.Join(originPath, p)
 			// todo: 如果有文件占用则删除，这个逻辑交由插件实现？
-
 			err := (*storage).Download(ctx, p, downloadPath)
 			if err != nil {
 				logrus.WithError(err).Errorln("download origin file failed")
@@ -166,6 +181,7 @@ func checkStorageDiff(ctx context.Context) error {
 				return err
 			}
 
+			// 通过 CID 判断后，如果不一致则需要更新，设置为空字符串
 			if originCid.String() != v {
 				// 通过设置 path 为空标识上传文件
 				index.Paths[k] = ""
@@ -198,6 +214,7 @@ func processUpload(ctx context.Context) error {
 		return fmt.Errorf("config item not exists")
 	}
 
+	// 加载文件上传插件
 	symbol, err := utils.LoadSymbol(storagePath)
 	if err != nil {
 		logrus.WithError(err).Errorln("load plugin failed")
@@ -209,12 +226,14 @@ func processUpload(ctx context.Context) error {
 		return fmt.Errorf("convert symbol to interface failed")
 	}
 
+	// 插件初始化
 	err = s.Initial(ctx)
 	if err != nil {
 		logrus.WithError(err).Errorln("storage plugin initial failed")
 		return err
 	}
 
+	// 创建上传器实例，并上传 DWApp
 	uploader := managers.NewUploader(progressPath)
 	err = uploader.Setup(index, &s)
 	if err != nil {
@@ -234,17 +253,20 @@ func processUpload(ctx context.Context) error {
 		return err
 	}
 
+	// 将元文件信息写入到本地
 	err = os.WriteFile(indexPath, indexBytes, 0700)
 	if err != nil {
 		logrus.WithError(err).Errorln("write index file failed")
 		return err
 	}
 
+	// 上传元文件，并取得 CID
 	indexNewAddr, err := s.Upload(ctx, ".index", indexPath)
 	if err != nil {
 		logrus.WithError(err).Errorln("upload index file to fs failed")
 		return err
 	}
+	// 根据 CID 创建 DID
 	newIdent := utils.Ident{
 		Type:    "storage",
 		SubType: storagePath,
@@ -259,6 +281,7 @@ func processUpload(ctx context.Context) error {
 	}
 	logrus.Infof("DWApp deployed on %s with MID: %s", storagePath, identStr)
 
+	// 更新链上的 DID 信息
 	err = (*chain).SetIdentity(identStr)
 	if err != nil {
 		logrus.WithError(err).Errorln("update on-chain identity failed")

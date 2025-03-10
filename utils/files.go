@@ -46,6 +46,7 @@ func GetUnixFsNode(path string) (files.Node, error) {
 	return f, nil
 }
 
+// GetFileCidV0 根据文件目录 path 计算文件的 cid
 func GetFileCidV0(path string) (*cid.Cid, error) {
 	fileBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -60,6 +61,7 @@ func GetFileCidV0(path string) (*cid.Cid, error) {
 	return &c, nil
 }
 
+// GetHeadCommit 获取 repo 的最新 commit
 func GetHeadCommit(dir string) (string, error) {
 	repo, err := git.PlainOpen(dir)
 	if err != nil {
@@ -79,6 +81,7 @@ func GetHeadCommit(dir string) (string, error) {
 	return commit.Hash.String(), nil
 }
 
+// ListAllCommittedFiles 列出 repo 的所有已 commit 的文件
 func ListAllCommittedFiles(dir string) ([]string, error) {
 	var results []string
 	repo, err := git.PlainOpen(dir)
@@ -110,7 +113,6 @@ func ListAllCommittedFiles(dir string) ([]string, error) {
 }
 
 // CreateDirIndex 创建目录索引，path 通过类 hash 的 cid 标识
-// TODO：注意，这里的索引只能为 ipfs 进行创建，对于其他的 FS 应该是先上传才可以创建，但是可以提前计算 Cid
 func CreateDirIndex(dir string) (*Index, error) {
 	commitStr, err := GetHeadCommit(dir)
 	if err != nil {

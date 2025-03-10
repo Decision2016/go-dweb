@@ -13,6 +13,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
+// CreateDirIncrement 在 filepath 下生成 from 和 to 两个 commit 之间的差异文件
 func CreateDirIncrement(filepath string, from string, to string) ([]string,
 	error) {
 	repo, err := git.PlainOpen(filepath)
@@ -22,6 +23,7 @@ func CreateDirIncrement(filepath string, from string, to string) ([]string,
 	var result []string
 	var fromCommit, toCommit *object.Commit
 
+	// 如果均为空则之间取最新的两个 commit
 	if from == "" && to == "" {
 		ref, err := repo.Head()
 		if err != nil {

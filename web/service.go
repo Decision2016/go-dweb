@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 )
 
+// DefaultService 默认 DWeb Service 服务
 type DefaultService struct {
 	port    int
 	router  *gin.Engine
@@ -32,6 +33,7 @@ type DefaultService struct {
 	//lock sync.Mutex			// 同步锁， TODO：后续考虑如果高并发的场景下需限制读写
 }
 
+// NewDWebService 创建新的 DWeb Service 实例
 func NewDWebService(ctx context.Context) (*DefaultService, error) {
 	c, err := lru.New(300)
 	if err != nil {
@@ -81,6 +83,7 @@ func (s *DefaultService) process() {
 	}
 }
 
+// middleware 中间件，拦截并检查 DWApp，向更新检查器或加载器添加任务
 func (s *DefaultService) middleware(c *gin.Context) {
 	path := c.Request.URL.Path
 	// TODO: 路径的处理
@@ -126,6 +129,7 @@ func (s *DefaultService) middleware(c *gin.Context) {
 	c.Next()
 }
 
+// handle 主要处理函数，返回目标静态文件
 func (s *DefaultService) handle(c *gin.Context) {
 	path := c.Param("path")
 

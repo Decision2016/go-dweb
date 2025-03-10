@@ -21,11 +21,12 @@ var (
 	checkerOnce sync.Once
 )
 
+// Checker 更新检查器
 type Checker struct {
 	loader *Loader
 
-	checkChan  chan *utils.Ident
-	checkCache map[string]time.Time
+	checkChan  chan *utils.Ident    // 更新检查队列
+	checkCache map[string]time.Time // 检查映射，对应每个 DWApp 上一次检查的时间戳
 
 	lock sync.RWMutex
 }

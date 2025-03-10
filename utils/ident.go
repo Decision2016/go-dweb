@@ -21,6 +21,7 @@ type Ident struct {
 	Address string
 }
 
+// String ident 转换为字符串类型
 func (ident *Ident) String() (string, error) {
 	if ident.Type == "chain" {
 		return filepath.Join("/", ident.Type, ident.SubType, ident.Address), nil
@@ -32,6 +33,7 @@ func (ident *Ident) String() (string, error) {
 	}
 }
 
+// FromString 从字符串转换得到 ident
 func (ident *Ident) FromString(path string) error {
 	items := strings.Split(path, "/")
 	if len(items) < 4 || (items[1] != "storage" && items[1] != "chain") {
@@ -49,6 +51,7 @@ func (ident *Ident) FromString(path string) error {
 	return nil
 }
 
+// Uid 获取 cid 的哈希
 func (ident *Ident) Uid() (string, error) {
 	identStr, err := ident.String()
 	if err != nil {
